@@ -1,1 +1,1 @@
-from .VAE_Variational_Bayes import VAEVariationalBayes
+from .AutoEncoder import Autoencoder

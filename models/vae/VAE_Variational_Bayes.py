@@ -20,8 +20,8 @@ class Encoder(nn.Module):
 
     def forward(self, x):
         h = torch.relu(self.fc1(x))  # ReLu to introduce non-linearity
-        z_mean = self.fc2_mu(h) # mean
-        z_log_var = self.fc2_log_var(h) # log variation
+        z_mean = self.fc2_mu(h)  # mean
+        z_log_var = self.fc2_log_var(h)  # log variation
         return z_mean, z_log_var
 
 
@@ -54,6 +54,3 @@ class VAEVariationalBayes(nn.Module):
         eps = torch.randn_like(std)  # Sample from normal distribution
         z = z_mean + eps * std  # Re-parameterization trick
         return z
-
-
-

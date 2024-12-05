@@ -5,7 +5,8 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision.transforms import transforms
 
-from models.autoencoders import VAEVariationalBayes
+from models.vae import VAEVariationalBayes
+import matplotlib.pyplot as plt
 
 
 def loss_function(x_reconstructed, x, z_mean, z_log_var):
@@ -20,8 +21,7 @@ def loss_function(x_reconstructed, x, z_mean, z_log_var):
     return total_loss
 
 
-if __name__ == '__main__':
-
+def train(epochs=10):
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Lambda(lambda x: x.view(-1))  # Flatten the images
@@ -42,7 +42,6 @@ if __name__ == '__main__':
     optimizer = Adam(vae.parameters(), lr=1e-3)
 
     # Training loop
-    epochs = 10
     for epoch in range(epochs):
         vae.train()
         train_loss = 0
@@ -60,5 +59,34 @@ if __name__ == '__main__':
             loss.backward()
             train_loss += loss.item()
             optimizer.step()
-
         print(f'Epoch [{epoch + 1}/{epochs}], Loss: {train_loss / len(train_loader.dataset)}')
+    return vae
+
+
+def sample_from_vae(vae, num_samples=1, latent_dim=20):
+    # Sample from a standard normal distribution
+    z = torch.randn(num_samples, latent_dim)
+
+    # Pass the sampled latent vectors through the decoder
+    with torch.no_grad():
+        x_reconstructed = vae.decoder(z)
+
+    return x_reconstructed
+
+
+if __name__ == '__main__':
+    vae = train(epochs=10)
+
+    # Example usage
+    num_samples = 10  # How many samples you want to generate
+    latent_dim = 20  # The dimension of the latent space
+    generated_samples = sample_from_vae(vae, 10, 20)
+
+    # Assuming the samples are image tensors, you may want to visualize them
+
+    # Visualize the generated images
+    for i in range(num_samples):
+        plt.subplot(1, num_samples, i + 1)
+        plt.imshow(generated_samples[i].view(28, 28).cpu().numpy(), cmap='gray')
+        plt.axis('off')
+    plt.show()
