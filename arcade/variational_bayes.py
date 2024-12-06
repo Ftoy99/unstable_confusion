@@ -82,7 +82,7 @@ def sample_from_reconstruct(vae):
     with torch.no_grad():
         test_images, _ = next(iter(test_loader))
         test_images = test_images.view(test_images.size(0), -1)
-        reconstructed = vae(test_images)
+        reconstructed,_,_ = vae(test_images)
 
     # Visualize original and reconstructed images
     test_images = test_images.view(-1, 28, 28)
