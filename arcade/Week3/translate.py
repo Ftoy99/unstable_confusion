@@ -11,8 +11,13 @@ Need 2 dictionaries
 1 for english
 1 for madeup language
 """
+from arcade.Week3.TransformerDictionary import TransformerDictionary
 
 
-class TransformerDictionary:
-    def __init__(self):
-        pass
+def main():
+    english_dictionary = TransformerDictionary(name="english")
+    made_up_dictionary = TransformerDictionary(name="made_up")
+
+
+if __name__ == '__main__':
+    main()
