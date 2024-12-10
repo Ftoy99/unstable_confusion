@@ -60,7 +60,7 @@ Caviar
 import torch
 from torch import Tensor, dtype
 
-from TransformerDictionary import TransformerDictionary
+from .TransformerDictionary import TransformerDictionary
 from models.transformers import AIAYN
 
 
