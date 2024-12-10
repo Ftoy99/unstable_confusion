@@ -3,7 +3,7 @@ import pickle
 
 
 class TransformerDictionary:
-    def __init__(self, name, path_to_dictionaries="dictionaries"):
+    def __init__(self, name, path_to_dictionaries="arcade/Week3/dictionaries"):
         self.name = name
         self.path_to_dictionaries = path_to_dictionaries
         dictionary_path = os.path.join(self.path_to_dictionaries, self.name + ".pkl")
