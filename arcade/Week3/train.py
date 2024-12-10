@@ -10,6 +10,7 @@ import random
 english_dictionary = TransformerDictionary(name="english")
 made_up_dictionary = TransformerDictionary(name="made_up")
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def dataset_generator():
     for sentence in get_gutenberg_generator():
@@ -30,7 +31,7 @@ def create_batches(generator, batch_size):
         yield batch
 
 
-def pad_batch(batch, padding_value=0, device="cpu"):
+def pad_batch(batch, padding_value=0, device=device):
     input_sequences = [item[0] for item in batch]
     output_sequences = [item[1] for item in batch]
     predicted_sequences = [item[2] for item in batch]
@@ -56,7 +57,7 @@ def pad_batch(batch, padding_value=0, device="cpu"):
 
 def train():
     model = AIAYN(input_dictionary_size=len(english_dictionary.dictionary) + 1,
-                  output_dictionary_size=len(made_up_dictionary.dictionary)).to('cuda')
+                  output_dictionary_size=len(made_up_dictionary.dictionary)).to(device)
 
     criterion = nn.CrossEntropyLoss()  # Common loss function for sequence-to-sequence tasks
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
