@@ -30,7 +30,7 @@ def create_batches(generator, batch_size):
         yield batch
 
 
-def pad_batch(batch, padding_value=0):
+def pad_batch(batch, padding_value=0, device="cpu"):
     input_sequences = [item[0] for item in batch]
     output_sequences = [item[1] for item in batch]
     predicted_sequences = [item[2] for item in batch]
@@ -45,7 +45,7 @@ def pad_batch(batch, padding_value=0):
         return torch.tensor(
             [seq + [padding_value] * (max_length - len(seq)) for seq in sequences],
             dtype=torch.int64
-        )
+        ).to(device)
 
     in_tensor = pad_sequences(input_sequences, max_length, padding_value)
     out_tensor = pad_sequences(output_sequences, max_length, padding_value)
@@ -81,7 +81,7 @@ def train():
         for index, batch in enumerate(batches):
             print(f"Processing batch {index}")
             # Pad the current batch
-            in_tensor, out_tensor, predicted_tensor = pad_batch(batch)
+            in_tensor, out_tensor, predicted_tensor = pad_batch(batch, device=model.device)
 
             # Forward pass
             optimizer.zero_grad()  # Clear previous gradients
