@@ -12,7 +12,7 @@ made_up_dictionary = TransformerDictionary(name="made_up")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model_path = "AIAYN.pth"  # The file where the model will be saved
+model_path = "arcade/Week3/weights/AIAYN.pth"  # The file where the model will be saved
 
 
 def save_model(model):
