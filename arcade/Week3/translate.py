@@ -11,7 +11,10 @@ Need 2 dictionaries
 1 for english
 1 for madeup language
 """
+import nltk
+
 from arcade.Week3.TransformerDictionary import TransformerDictionary
+from arcade.Week3.prepare_dataset import get_gutenberg_sentence
 
 
 def main():
