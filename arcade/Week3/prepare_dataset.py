@@ -13,14 +13,13 @@ def get_gutenberg_id():
         yield id
 
 
-def get_gutenberg_sentence():
+def get_gutenberg_generator():
     for id in get_gutenberg_id():
         for sentence in gutenberg.sents(id):
             yield sentence
 
 
 def prepare_made_up():
-    english_dictionary = TransformerDictionary(name="english")
     made_up_dictionary = TransformerDictionary(name="made_up")
     for x in ["Tuna",
               "Mayo",
@@ -43,5 +42,4 @@ def prepare_made_up():
 if __name__ == '__main__':
     # prepare_made_up()
     # nltk_gui()
-    for sentence in get_gutenberg_sentence():
-        print(sentence)
+    prepare_made_up()

@@ -8,7 +8,7 @@ from torch import nn
 class AIAYN(nn.Module):
     """Transformer class as described in Attention is all you need"""
 
-    def __init__(self, input_dictionary_size, output_dictionary_size, embedding_dim_size=32 , max_sentences=9999):
+    def __init__(self, input_dictionary_size, output_dictionary_size, embedding_dim_size=32, max_sentences=9999):
         super(AIAYN, self).__init__()
         # Embeddings transform tokens to vectors
         self.input_embedding = nn.Embedding(num_embeddings=input_dictionary_size, embedding_dim=embedding_dim_size)
@@ -21,7 +21,6 @@ class AIAYN(nn.Module):
 
         self.output_linear = nn.Linear(embedding_dim_size, output_dictionary_size)
         self.soft_max = nn.Softmax(dim=-1)
-
 
     def forward(self, source, target):
         # Convert to embeddings
@@ -43,10 +42,10 @@ class AIAYN(nn.Module):
 
 
 class PositionalEncoding(nn.Module):
-    def __init__(self, embedding_dim_size=32,max_sentences=9999):
+    def __init__(self, embedding_dim_size=32, max_sentences=9999):
         super(PositionalEncoding, self).__init__()
-        #For even = sin(pos/10000^(2*i/dmodel))
-        #For odd = cod(pos/10000^(2*i/dmodel))
+        # For even = sin(pos/10000^(2*i/dmodel))
+        # For odd = cod(pos/10000^(2*i/dmodel))
 
         # For each embedding dimension i we add the encoding meaning 0,1 -> odd encoding ->2 even 1,0 even
         pe = torch.zeros(max_sentences, embedding_dim_size)
@@ -70,44 +69,46 @@ class PositionalEncoding(nn.Module):
         output = embedding + self.pe[:, :seq_len, :]
         return output
 
+
 class Encoder(nn.Module):
     """Encoder class for the AIAYN Transformer"""
 
     def __init__(self, embedding_dim_size=32):
         super(Encoder, self).__init__()
-        self.multi_head_attention = nn.MultiheadAttention(num_heads=4,embed_dim=embedding_dim_size)
+        self.multi_head_attention = nn.MultiheadAttention(num_heads=4, embed_dim=embedding_dim_size)
 
         self.normalization1 = nn.LayerNorm(embedding_dim_size)
         self.normalization2 = nn.LayerNorm(embedding_dim_size)
 
         # 3.3 feed forward
         self.feed_forward = nn.Sequential(
-            nn.Linear(embedding_dim_size,embedding_dim_size*4),
+            nn.Linear(embedding_dim_size, embedding_dim_size * 4),
             nn.ReLU(),
-            nn.Linear(embedding_dim_size*4,embedding_dim_size)
+            nn.Linear(embedding_dim_size * 4, embedding_dim_size)
         )
 
-    def forward(self,embedding):
-        #Attention -> outpus Attention -> weights
-        attn,_ = self.multi_head_attention(embedding,embedding,embedding) # hope all is good
+    def forward(self, embedding):
+        # Attention -> outpus Attention -> weights
+        attn, _ = self.multi_head_attention(embedding, embedding, embedding)  # hope all is good
 
         # Add & Norm
-        attn_embedding = self.normalization1(embedding+attn)
+        attn_embedding = self.normalization1(embedding + attn)
 
         # Feed Forward
         output = self.feed_forward(attn_embedding)
 
         # Add & Norm
-        output = self.normalization2(attn_embedding+output)
+        output = self.normalization2(attn_embedding + output)
 
         return output
+
 
 class Decoder(nn.Module):
     """Decoder class for the AIAYN Transformer"""
 
     def __init__(self, embedding_dim_size=32):
         super(Decoder, self).__init__()
-        self.masked_multi_head_attention = nn.MultiheadAttention(num_heads=4,embed_dim=embedding_dim_size)
+        self.masked_multi_head_attention = nn.MultiheadAttention(num_heads=4, embed_dim=embedding_dim_size)
         self.multi_head_attention = nn.MultiheadAttention(num_heads=4, embed_dim=embedding_dim_size)
 
         self.normalization1 = nn.LayerNorm(embedding_dim_size)
@@ -116,12 +117,12 @@ class Decoder(nn.Module):
 
         # 3.3 feed forward
         self.feed_forward = nn.Sequential(
-            nn.Linear(embedding_dim_size,embedding_dim_size*4),
+            nn.Linear(embedding_dim_size, embedding_dim_size * 4),
             nn.ReLU(),
-            nn.Linear(embedding_dim_size*4,embedding_dim_size)
+            nn.Linear(embedding_dim_size * 4, embedding_dim_size)
         )
 
-    def forward(self,embedding,memory):
+    def forward(self, embedding, memory):
         # Embedding is the input memory is the output from encoder
 
         seq_len = embedding.size(0)  # The length of the target sequence
@@ -129,16 +130,16 @@ class Decoder(nn.Module):
 
         # masked multi head attn
         masked_attn, _ = self.masked_multi_head_attention(embedding, embedding, embedding, attn_mask=mask)
-        out1 = self.normalization1(masked_attn+embedding)
+        out1 = self.normalization1(masked_attn + embedding)
 
         out1 = embedding.transpose(0, 1)  # [seq_len, batch_size, embedding_dim_size]
         memory = memory.transpose(0, 1)  # [seq_len, batch_size, embedding_dim_size]
-        out1_attn,_ = self.multi_head_attention(memory,memory,out1)
+        out1_attn, _ = self.multi_head_attention(memory, memory, out1)
 
-        out2 = self.normalization2(out1_attn+out1)
+        out2 = self.normalization2(out1_attn + out1)
 
         out3 = self.feed_forward(out2)
-        output = self.normalization3(out3+out2)
+        output = self.normalization3(out3 + out2)
 
         return output
 

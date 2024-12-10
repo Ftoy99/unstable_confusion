@@ -11,26 +11,25 @@ Need 2 dictionaries
 1 for english
 1 for madeup language
 """
-import nltk
-
 from arcade.Week3.TransformerDictionary import TransformerDictionary
-from arcade.Week3.prepare_dataset import get_gutenberg_sentence
 
 len_to_words = {
     2: ["kelp"],
     3: ["fish", "flakes"],
     4: ["salmon"],
-    5: ["mustard leaf"],
-    6: ["salmon roe"],
+    5: ["mustard", "leaf"],
+    6: ["salmon", "roe"],
     7: ["caviar"],
     8: ["tuna"],
-    9: ["tuna mayo"],
-    10: ["spicy cod roe"]
+    9: ["tuna", "mayo"],
+    10: ["spicy", "cod", "roe"]
 }
+
 
 def main():
     english_dictionary = TransformerDictionary(name="english")
     made_up_dictionary = TransformerDictionary(name="made_up")
+
 
 def translate_functional(sentence):
     """
@@ -48,14 +47,12 @@ def translate_functional(sentence):
     :return:
     """
 
-
     output = []
     for word in sentence:
         if len(word) in len_to_words:
             output.extend(len_to_words[len(word)])
 
     return output
-
 
 
 if __name__ == '__main__':
