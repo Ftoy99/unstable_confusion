@@ -82,7 +82,7 @@ def train():
         for index, batch in enumerate(batches):
             print(f"Processing batch {index}")
             # Pad the current batch
-            in_tensor, out_tensor, predicted_tensor = pad_batch(batch, device=model.device)
+            in_tensor, out_tensor, predicted_tensor = pad_batch(batch)
 
             # Forward pass
             optimizer.zero_grad()  # Clear previous gradients
