@@ -41,15 +41,44 @@ Salmon Roe
 # Duplicate Tuna
 Tuna
 Tuna Mayo
+
+
+Uniques
+Tuna
+Mayo
+Salmon
+Spicy
+Cod
+Roe
+Fish
+Flakes
+Kelp
+Mustard
+Leaf
+Caviar
 """
+import torch
+from torch import Tensor, dtype
 
-from torch import Tensor
-
+from arcade.Week3.TransformerDictionary import TransformerDictionary
 from models.transformers import AIAYN
+from prepare_dataset import get_gutenberg_sentence
 
 
 def main():
+    # Dictionaries to convert to tokens
+    english_dictionary = TransformerDictionary(name="english")
+    made_up_dictionary = TransformerDictionary(name="made_up")
+
     model = AIAYN(input_dictionary_size=100000, output_dictionary_size=10)
+
+    for sentence in get_gutenberg_sentence():
+        sentence = [english_dictionary.to_token(x.lower()) for x in sentence]
+        in_tensor = torch.tensor(sentence, dtype=torch.int64)
+        out_tensor = torch.tensor([],dtype=torch.int64)
+        x = model(in_tensor, out_tensor)
+        print(x)
+    # english_dictionary.save()
 
 
 if __name__ == '__main__':

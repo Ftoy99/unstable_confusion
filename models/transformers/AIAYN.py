@@ -36,9 +36,15 @@ class Encoder(nn.Module):
     def __init__(self, embedding_dim_size=32):
         super(Encoder, self).__init__()
 
+    def forward(self, x):
+        return x
+
 
 class Decoder(nn.Module):
     """Decoder class for the AIAYN Transformer"""
 
     def __init__(self, embedding_dim_size=32):
         super(Decoder, self).__init__()
+
+    def forward(self, x, mem):
+        return x

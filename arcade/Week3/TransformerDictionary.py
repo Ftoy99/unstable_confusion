@@ -9,7 +9,7 @@ class TransformerDictionary:
         dictionary_path = os.path.join(self.path_to_dictionaries, self.name + ".pkl")
 
         # Init dictionary
-        self.dictionary = {1: "hehe"}
+        self.dictionary = {}
         if os.path.exists(dictionary_path):
             print(f"Dictionary {dictionary_path} exists. Loading")
             self.load()
@@ -18,7 +18,15 @@ class TransformerDictionary:
             self.save()
 
     def learn_word(self, word):
-        pass
+        if word not in self.dictionary:
+            self.dictionary[word] = len(self.dictionary) + 1
+        return self.dictionary[word]
+
+    def to_token(self, word):
+        if word in self.dictionary:
+            return self.dictionary[word]
+        else:
+            return self.learn_word(word)
 
     def save(self):
         dictionary_path = os.path.join(self.path_to_dictionaries, self.name + ".pkl")
