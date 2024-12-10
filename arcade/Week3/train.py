@@ -1,10 +1,9 @@
 import torch
 from torch import nn, optim
-from torch.utils.data import DataLoader
 
-from arcade.Week3.TransformerDictionary import TransformerDictionary
-from arcade.Week3.prepare_dataset import get_gutenberg_generator
-from arcade.Week3.translate import translate_functional
+from .TransformerDictionary import TransformerDictionary
+from .prepare_dataset import get_gutenberg_generator
+from .translate import translate_functional
 from models import AIAYN
 import random
 
