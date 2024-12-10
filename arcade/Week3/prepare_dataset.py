@@ -1,7 +1,7 @@
 import nltk
 from nltk.corpus import gutenberg
 
-from arcade.Week3.TransformerDictionary import TransformerDictionary
+from TransformerDictionary import TransformerDictionary
 
 
 def nltk_gui():

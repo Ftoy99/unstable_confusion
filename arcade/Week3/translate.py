@@ -11,7 +11,7 @@ Need 2 dictionaries
 1 for english
 1 for madeup language
 """
-from arcade.Week3.TransformerDictionary import TransformerDictionary
+from TransformerDictionary import TransformerDictionary
 
 len_to_words = {
     2: ["kelp"],

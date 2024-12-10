@@ -60,9 +60,8 @@ Caviar
 import torch
 from torch import Tensor, dtype
 
-from arcade.Week3.TransformerDictionary import TransformerDictionary
+from TransformerDictionary import TransformerDictionary
 from models.transformers import AIAYN
-from prepare_dataset import get_gutenberg_sentence
 
 
 def main():
