@@ -1,9 +1,9 @@
 import torch
 from torch import nn, optim
 
-from .TransformerDictionary import TransformerDictionary
-from .prepare_dataset import get_gutenberg_generator
-from .translate import translate_functional
+from TransformerDictionary import TransformerDictionary
+from prepare_dataset import get_gutenberg_generator
+from translate import translate_functional
 from models import AIAYN
 import random
 
