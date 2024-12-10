@@ -72,13 +72,41 @@ def main():
 
     model = AIAYN(input_dictionary_size=100000, output_dictionary_size=10)
 
-    for sentence in get_gutenberg_sentence():
-        sentence = [english_dictionary.to_token(x.lower()) for x in sentence]
-        in_tensor = torch.tensor(sentence, dtype=torch.int64)
-        out_tensor = torch.tensor([],dtype=torch.int64)
-        x = model(in_tensor, out_tensor)
-        print(x)
-    # english_dictionary.save()
+    batch_size = 4  # Example batch size
+    batch_in = []
+    batch_out = []
+
+    for sentence in get_gutenberg_sentence():  # This is the generator yielding sentences
+        # Tokenize each word individually
+        tokenized_sentence = [english_dictionary.to_token(x.lower()) for x in sentence]
+
+        # Add the tokenized sentence to the batch (inputs and targets)
+        batch_in.append(tokenized_sentence)
+        batch_out.append([0 for _ in sentence])
+
+        # If we've collected enough sentences in the batch
+        if len(batch_in) == batch_size:
+            # Find the maximum length of sentence in the batch (to pad accordingly)
+            max_len = max(len(s) for s in batch_in)
+
+            # Pad the sentences and outputs to have the same length
+            padded_in = [s + [0] * (max_len - len(s)) for s in batch_in]  # Pad input sentences
+            padded_out = [s + [0] * (max_len - len(s)) for s in batch_out]  # Pad output sentences
+
+            # Convert the padded sequences into tensors (batch_size, max_len)
+            in_tensor = torch.tensor(padded_in, dtype=torch.int64)  # Shape: (batch_size, seq_len)
+            out_tensor = torch.tensor(padded_out, dtype=torch.int64)  # Shape: (batch_size, seq_len)
+
+            # Pass the batch through the model
+            output = model(in_tensor, out_tensor)
+            print(output)
+
+            # Clear the batch lists for the next batch
+            batch_in = []
+            batch_out = []
+
+    # Optionally save the dictionary after processing
+    english_dictionary.save()
 
 
 if __name__ == '__main__':

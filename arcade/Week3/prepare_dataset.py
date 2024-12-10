@@ -41,6 +41,7 @@ def prepare_made_up():
 
 
 if __name__ == '__main__':
-    prepare_made_up()
-    # for sentence in get_gutenberg_sentence():
-    #     print(sentence)
+    # prepare_made_up()
+    # nltk_gui()
+    for sentence in get_gutenberg_sentence():
+        print(sentence)
