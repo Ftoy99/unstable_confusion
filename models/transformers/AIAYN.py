@@ -130,8 +130,7 @@ class Decoder(nn.Module):
         # masked multi head attn
         masked_attn, _ = self.masked_multi_head_attention(embedding, embedding, embedding, attn_mask=mask)
         out1 = self.normalization1(masked_attn+embedding)
-        print(f"Embedding shape: {out1.shape}")
-        print(f"Memory shape: {memory.shape}")
+
         out1 = embedding.transpose(0, 1)  # [seq_len, batch_size, embedding_dim_size]
         memory = memory.transpose(0, 1)  # [seq_len, batch_size, embedding_dim_size]
         out1_attn,_ = self.multi_head_attention(memory,memory,out1)
