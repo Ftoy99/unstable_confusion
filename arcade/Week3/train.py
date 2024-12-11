@@ -1,10 +1,11 @@
 import torch
 from torch import nn, optim
 
+from arcade.Week3.sequence_helper import pad_sequences
 from models.transformers.AIAYN import load_model, save_model
-from .TransformerDictionary import TransformerDictionary
-from .prepare_dataset import get_gutenberg_generator
-from .translate import translate_functional
+from arcade.Week3.TransformerDictionary import TransformerDictionary
+from arcade.Week3.prepare_dataset import get_gutenberg_generator
+from arcade.Week3.translate import translate_functional
 from models import AIAYN
 import random
 
@@ -13,7 +14,7 @@ made_up_dictionary = TransformerDictionary(name="made_up")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model_path = "arcade/Week3/weights/AIAYN.pth"  # The file where the model will be saved
+model_path = "weights/AIAYN.pth"  # The file where the model will be saved
 
 def dataset_generator():
     for sentence in get_gutenberg_generator():
@@ -45,15 +46,9 @@ def pad_batch(batch, padding_value=0, device=device):
         max(len(seq) for seq in predicted_sequences)
     )
 
-    def pad_sequences(sequences, max_length, padding_value):
-        return torch.tensor(
-            [seq + [padding_value] * (max_length - len(seq)) for seq in sequences],
-            dtype=torch.int64
-        ).to(device)
-
-    in_tensor = pad_sequences(input_sequences, max_length, padding_value)
-    out_tensor = pad_sequences(output_sequences, max_length, padding_value)
-    predicted_tensor = pad_sequences(predicted_sequences, max_length, padding_value)
+    in_tensor = pad_sequences(input_sequences, max_length, padding_value,device)
+    out_tensor = pad_sequences(output_sequences, max_length, padding_value,device)
+    predicted_tensor = pad_sequences(predicted_sequences, max_length, padding_value,device)
 
     return in_tensor, out_tensor, predicted_tensor
 
@@ -68,7 +63,7 @@ def train():
     criterion = nn.CrossEntropyLoss()  # Common loss function for sequence-to-sequence tasks
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
-    batch_size = 10000
+    batch_size = 20
     num_epochs = 10
     data_gen = dataset_generator()
 
@@ -89,6 +84,10 @@ def train():
             print(f"Processing batch {index}")
             # Pad the current batch
             in_tensor, out_tensor, predicted_tensor = pad_batch(batch)
+
+            print(in_tensor.shape)
+            print(out_tensor.shape)
+            print(predicted_tensor.shape)
 
             # Forward pass
             optimizer.zero_grad()  # Clear previous gradients

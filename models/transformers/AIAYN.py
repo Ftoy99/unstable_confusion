@@ -1,5 +1,6 @@
 # Attention is all you need
 import math
+import os
 
 import torch
 from torch import nn
@@ -89,7 +90,7 @@ class Encoder(nn.Module):
 
     def forward(self, embedding):
         # Attention -> outpus Attention -> weights
-        attn, _ = self.multi_head_attention(embedding, embedding, embedding)  # hope all is good
+        attn, _ = self.multi_head_attention(embedding, embedding, embedding)
 
         # Add & Norm
         attn_embedding = self.normalization1(embedding + attn)
@@ -123,16 +124,16 @@ class Decoder(nn.Module):
         )
 
     def forward(self, embedding, memory):
-        # Embedding is the input memory is the output from encoder
+        # Embedding is the input , memory is the output from encoder
 
-        seq_len = embedding.size(0)  # The length of the target sequence
+        seq_len = embedding.size(0)
         mask = self.generate_mask(seq_len).to(embedding.device)  # Create the mask for the self-attention
 
         # masked multi head attn
         masked_attn, _ = self.masked_multi_head_attention(embedding, embedding, embedding, attn_mask=mask)
         out1 = self.normalization1(masked_attn + embedding)
 
-        out1 = embedding.transpose(0, 1)  # [seq_len, batch_size, embedding_dim_size]
+        out1 = out1.transpose(0, 1)  # [seq_len, batch_size, embedding_dim_size]
         memory = memory.transpose(0, 1)  # [seq_len, batch_size, embedding_dim_size]
         out1_attn, _ = self.multi_head_attention(memory, memory, out1)
 
@@ -156,13 +157,15 @@ class Decoder(nn.Module):
         return mask
 
 def save_model(path,model):
-    torch.save(model.state_dict(), path)
+    absolute_path = os.path.abspath(path)
+    torch.save(model.state_dict(), absolute_path)
     print(f"Model saved")
 
 
 def load_model(path,model):
     try:
-        model.load_state_dict(torch.load(path))
+        absolute_path = os.path.abspath(path)
+        model.load_state_dict(torch.load(absolute_path))
         print("Model loaded successfully.")
     except FileNotFoundError:
         print("No saved model found. Starting from scratch.")

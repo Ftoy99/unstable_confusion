@@ -1,3 +1,4 @@
+import torch
 from torch import device, cuda
 import uvicorn
 from fastapi import FastAPI, Form
@@ -6,6 +7,7 @@ from starlette.responses import HTMLResponse
 from starlette.templating import Jinja2Templates
 
 from arcade.Week3.TransformerDictionary import TransformerDictionary
+from arcade.Week3.sequence_helper import pad_sequences
 from arcade.Week3.translate import translate_functional
 from models.transformers.AIAYN import AIAYN, load_model
 
@@ -23,7 +25,7 @@ model = AIAYN(input_dictionary_size=len(english_dictionary.dictionary) + 1,
               output_dictionary_size=len(made_up_dictionary.dictionary)).to(device)
 
 # Load Model Weights
-path_to_weights = "arcade/Week3/weights/AIAYN.pth"
+path_to_weights = "weights/AIAYN.pth"
 load_model(path_to_weights,model)
 
 @app.get("/", response_class=HTMLResponse)
@@ -36,11 +38,23 @@ async def translate(text: str = Form(...)):
     sentence = text.split(' ') # Split with spaces
 
     # Functional translation logic
-    functional_translation = " ".join(translate_functional(sentence))
+    functional_translation_list = translate_functional(sentence)
+    functional_translation = " ".join(functional_translation_list)
+
+
 
     # Transformer translation logic
-    output_tensor = model(input_output)
-    transformer_translation = "".join(["\u2022" + char for char in text])  # Add a dot before each character
+
+    # Prepare Transformed Inputs in tensors padded etc.
+    max_len = len(sentence)
+    input_tensor = pad_sequences([[made_up_dictionary.to_token(x) for x in sentence]],max_len,0,device)
+    output_tensor = pad_sequences([[]],max_len,0,device)
+
+    # Translate with transformer
+    output_tensor = model(input_tensor,output_tensor)
+    _, indices = torch.max(output_tensor, dim=-1)
+
+    transformer_translation = output_tensor  # Add a dot before each ch
 
     # Return both translations as HTML
     return f"""

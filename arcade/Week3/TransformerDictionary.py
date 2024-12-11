@@ -19,7 +19,7 @@ class TransformerDictionary:
 
     def learn_word(self, word):
         if word not in self.dictionary:
-            self.dictionary[word] = len(self.dictionary)
+            self.dictionary[word] = len(self.dictionary)+1
         return self.dictionary[word]
 
     def to_token(self, word):
