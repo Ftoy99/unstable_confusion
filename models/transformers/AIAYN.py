@@ -21,7 +21,7 @@ class AIAYN(nn.Module):
         self.decoder = Decoder(embedding_dim_size=embedding_dim_size)
 
         self.output_linear = nn.Linear(embedding_dim_size, output_dictionary_size)
-        self.soft_max = nn.Softmax(dim=-1)
+        # self.soft_max = nn.Softmax(dim=-1)
 
     def forward(self, source, target):
         # Convert to embeddings
@@ -38,7 +38,7 @@ class AIAYN(nn.Module):
         # Pass through decoder with encoder memory
         output = self.decoder(target_embedding, memory)
         output = self.output_linear(output)
-        output = self.soft_max(output)
+        # output = self.soft_max(output)
         return output
 
 
@@ -127,7 +127,7 @@ class Decoder(nn.Module):
         # Embedding is the input , memory is the output from encoder
 
         seq_len = embedding.size(0)
-        mask = self.generate_mask(seq_len).to(embedding.device)  # Create the mask for the self-attention
+        mask = self.generate_mask(seq_len)  # Create the mask for the self-attention
 
         # masked multi head attn
         masked_attn, _ = self.masked_multi_head_attention(embedding, embedding, embedding, attn_mask=mask)
@@ -152,7 +152,7 @@ class Decoder(nn.Module):
         Generate a mask for the self-attention in the decoder to prevent attending to future tokens.
         The mask will be a lower triangular matrix, where all values above the diagonal are True (masked).
         """
-        mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1)  # Upper triangular matrix
+        mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=0)  # Upper triangular matrix
         mask = mask == 0  # Invert: True for allowed positions, False for masked positions
         return mask
 

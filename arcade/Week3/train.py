@@ -55,8 +55,8 @@ def pad_batch(batch, padding_value=0, device=device):
 
 def train():
     model = AIAYN(input_dictionary_size=len(english_dictionary.dictionary) + 1,
-                  output_dictionary_size=len(made_up_dictionary.dictionary)).to(device)
-
+                  output_dictionary_size=len(made_up_dictionary.dictionary) + 1).to(device)
+    torch.autograd.set_detect_anomaly(True)
     # Load the model if it exists
     load_model(model_path,model)
 
@@ -85,9 +85,10 @@ def train():
             # Pad the current batch
             in_tensor, out_tensor, predicted_tensor = pad_batch(batch)
 
-            print(in_tensor.shape)
-            print(out_tensor.shape)
-            print(predicted_tensor.shape)
+            #Debug
+            # print(in_tensor.shape)
+            # print(out_tensor.shape)
+            # print(predicted_tensor.shape)
 
             # Forward pass
             optimizer.zero_grad()  # Clear previous gradients

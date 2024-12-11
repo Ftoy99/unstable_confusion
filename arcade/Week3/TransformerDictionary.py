@@ -28,6 +28,13 @@ class TransformerDictionary:
         else:
             return self.learn_word(word)
 
+    def to_word(self, token):
+        reverse_dict = reversed(self.dictionary)
+        if token in reverse_dict:
+            return reverse_dict[token]
+        else:
+            return ""
+
     def save(self):
         dictionary_path = os.path.join(self.path_to_dictionaries, self.name + ".pkl")
         with open(dictionary_path, "wb") as f:

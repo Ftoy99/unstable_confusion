@@ -22,7 +22,7 @@ device = device("cuda" if cuda.is_available() else "cpu")
 english_dictionary = TransformerDictionary(name="english")
 made_up_dictionary = TransformerDictionary(name="made_up")
 model = AIAYN(input_dictionary_size=len(english_dictionary.dictionary) + 1,
-              output_dictionary_size=len(made_up_dictionary.dictionary)).to(device)
+              output_dictionary_size=len(made_up_dictionary.dictionary) + 1).to(device)
 
 # Load Model Weights
 path_to_weights = "weights/AIAYN.pth"
@@ -40,21 +40,18 @@ async def translate(text: str = Form(...)):
     # Functional translation logic
     functional_translation_list = translate_functional(sentence)
     functional_translation = " ".join(functional_translation_list)
-
-
-
     # Transformer translation logic
 
     # Prepare Transformed Inputs in tensors padded etc.
     max_len = len(sentence)
-    input_tensor = pad_sequences([[made_up_dictionary.to_token(x) for x in sentence]],max_len,0,device)
+    input_tensor = pad_sequences([[english_dictionary.to_token(x) for x in sentence]],max_len,0,device)
     output_tensor = pad_sequences([[]],max_len,0,device)
 
     # Translate with transformer
     output_tensor = model(input_tensor,output_tensor)
     _, indices = torch.max(output_tensor, dim=-1)
-
-    transformer_translation = output_tensor  # Add a dot before each ch
+    transformer_translation = indices.squeeze().tolist()  # Add a dot before each ch
+    transformer_translation = [made_up_dictionary.to_word(token) for token in transformer_translation]
 
     # Return both translations as HTML
     return f"""
