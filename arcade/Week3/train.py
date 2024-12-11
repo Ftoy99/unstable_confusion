@@ -63,7 +63,7 @@ def train():
     criterion = nn.CrossEntropyLoss()  # Common loss function for sequence-to-sequence tasks
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
-    batch_size = 1000
+    batch_size = 100
     num_epochs = 10
     data_gen = dataset_generator()
 
