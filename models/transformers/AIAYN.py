@@ -162,16 +162,29 @@ class Decoder(nn.Module):
         attn_mask[torch.isnan(attn_mask)] = 0.0  # fixes all 'nan' on 'mps' device
         return attn_mask
 
-def save_model(path,model):
-    absolute_path = os.path.abspath(path)
+
+def save_model(path, model):
+    # Get the absolute path of the current script
+    script_dir = os.path.dirname(os.path.abspath(__file__))  # Absolute path of the script
+
+    # Resolve model path relative to the script directory
+    absolute_path = os.path.join(script_dir, path)
+
+    # Save model
     torch.save(model.state_dict(), absolute_path)
-    print(f"Model saved")
+    print(f"Model saved at {absolute_path}")
 
 
-def load_model(path,model):
+def load_model(path, model):
     try:
-        absolute_path = os.path.abspath(path)
+        # Get the absolute path of the current script
+        script_dir = os.path.dirname(os.path.abspath(__file__))  # Absolute path of the script
+
+        # Resolve model path relative to the script directory
+        absolute_path = os.path.join(script_dir, path)
+
+        # Load model
         model.load_state_dict(torch.load(absolute_path))
         print("Model loaded successfully.")
     except FileNotFoundError:
-        print("No saved model found. Starting from scratch.")
+        print(f"No saved model found at {absolute_path}. Starting from scratch.")
