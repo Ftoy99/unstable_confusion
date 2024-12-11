@@ -44,7 +44,7 @@ async def translate(text: str = Form(...)):
 
     # Prepare Transformed Inputs in tensors padded etc.
     max_len = len(sentence)
-    input_tensor = pad_sequences([[english_dictionary.to_token(x) for x in sentence]],max_len,0,device)
+    input_tensor = pad_sequences([[english_dictionary.to_token(x.lower()) for x in sentence]],max_len,0,device)
     output_tensor = pad_sequences([[]],max_len,0,device)
 
     # Translate with transformer

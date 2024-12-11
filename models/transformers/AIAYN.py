@@ -21,7 +21,7 @@ class AIAYN(nn.Module):
         self.decoder = Decoder(embedding_dim_size=embedding_dim_size)
 
         self.output_linear = nn.Linear(embedding_dim_size, output_dictionary_size)
-        # self.soft_max = nn.Softmax(dim=-1)
+        self.soft_max = nn.Softmax(dim=-1)
 
     def forward(self, source, target):
         # Convert to embeddings
@@ -38,7 +38,7 @@ class AIAYN(nn.Module):
         # Pass through decoder with encoder memory
         output = self.decoder(target_embedding, memory)
         output = self.output_linear(output)
-        # output = self.soft_max(output)
+        output = self.soft_max(output)
         return output
 
 
