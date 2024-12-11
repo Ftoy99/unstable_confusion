@@ -1,11 +1,16 @@
 import os
 import pickle
 
-
 class TransformerDictionary:
     def __init__(self, name, path_to_dictionaries="dictionaries"):
         self.name = name
-        self.path_to_dictionaries = path_to_dictionaries
+
+        # Get the absolute path of the current script
+        script_dir = os.path.dirname(os.path.abspath(__file__))  # Absolute path of the script
+
+        # Use os.path.join to ensure the dictionaries path is correctly resolved
+        self.path_to_dictionaries = os.path.join(script_dir, path_to_dictionaries)
+
         dictionary_path = os.path.join(self.path_to_dictionaries, self.name + ".pkl")
 
         # Init dictionary
@@ -19,7 +24,7 @@ class TransformerDictionary:
 
     def learn_word(self, word):
         if word not in self.dictionary:
-            self.dictionary[word] = len(self.dictionary)+1
+            self.dictionary[word] = len(self.dictionary) + 1
         return self.dictionary[word]
 
     def to_token(self, word):
