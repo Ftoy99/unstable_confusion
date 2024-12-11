@@ -171,8 +171,8 @@ def save_model(path, model):
     absolute_path = os.path.join(script_dir, path)
 
     # Save model
+
     torch.save(model.state_dict(), absolute_path)
-    print(f"Model saved at {absolute_path}")
 
 
 def load_model(path, model):

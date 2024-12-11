@@ -1,3 +1,5 @@
+import os
+
 import torch
 from torch import device, cuda
 import uvicorn
@@ -13,7 +15,11 @@ from models.transformers.AIAYN import AIAYN, load_model
 
 # Fast api globals
 app = FastAPI()
-templates = Jinja2Templates(directory="templates")
+# Get the absolute path of the current script
+script_dir = os.path.dirname(os.path.abspath(__file__))  # Absolute path of the script
+
+# Resolve templates path relative to the script directory
+templates = Jinja2Templates(directory=os.path.join(script_dir, "templates"))
 
 # Torch Device to run model on
 device = device("cuda" if cuda.is_available() else "cpu")
