@@ -127,7 +127,7 @@ class Decoder(nn.Module):
         # Embedding is the input , memory is the output from encoder
 
         seq_len = embedding.size(0)
-        mask = self.generate_mask(seq_len)  # Create the mask for the self-attention
+        mask = self.generate_mask(seq_len,embedding.dtype,embedding.device)  # Create the mask for the self-attention
 
         # masked multi head attn
         masked_attn, _ = self.masked_multi_head_attention(embedding, embedding, embedding, attn_mask=mask)
@@ -144,17 +144,23 @@ class Decoder(nn.Module):
 
         return output
 
-    def generate_mask(self, seq_len):
-        """
-        This makes mask that is triangle so first time max-1 are covered and by the end none are covered.
+    def generate_mask(self, seq_len,dtype,device):
+        # """
+        # This makes mask that is triangle so first time max-1 are covered and by the end none are covered.
+        #
+        #
+        # Generate a mask for the self-attention in the decoder to prevent attending to future tokens.
+        # The mask will be a lower triangular matrix, where all values above the diagonal are True (masked).
+        # """
+        # mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1)  # Upper triangular matrix
+        # mask = mask == 0  # Invert: True for allowed positions, False for masked positions
 
-
-        Generate a mask for the self-attention in the decoder to prevent attending to future tokens.
-        The mask will be a lower triangular matrix, where all values above the diagonal are True (masked).
-        """
-        mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=0)  # Upper triangular matrix
-        mask = mask == 0  # Invert: True for allowed positions, False for masked positions
-        return mask
+        attn_mask = torch.full(
+            (seq_len, seq_len), -float("Inf"), device=device, dtype=dtype
+        )
+        attn_mask = torch.triu(attn_mask, diagonal=1)
+        attn_mask[torch.isnan(attn_mask)] = 0.0  # fixes all 'nan' on 'mps' device
+        return attn_mask
 
 def save_model(path,model):
     absolute_path = os.path.abspath(path)
