@@ -17,12 +17,13 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_path = "weights/AIAYN.pth"  # The file where the model will be saved
 
 def dataset_generator():
+    dataset = []
     for sentence in get_gutenberg_generator():
         tokenized_sentence = [english_dictionary.to_token(x.lower()) for x in sentence]
         func_translation = [made_up_dictionary.to_token(x) for x in translate_functional(sentence)]
         output_sequence = [0 for _ in sentence]  # Replace with your actual logic
-        yield tokenized_sentence, output_sequence, func_translation
-
+        dataset.append((tokenized_sentence, output_sequence, func_translation))
+    return dataset
 
 def create_batches(generator, batch_size):
     batch = []
@@ -67,13 +68,12 @@ def train():
     num_epochs = 100
     data_gen = dataset_generator()
 
-    subset = 1000
     batches = []
     print("Preparing Batches")
-    for batch in create_batches(data_gen, batch_size):
-        batches.append(batch)
+    for sentence_pair in create_batches(data_gen, batch_size):
+        batches.append(sentence_pair)
     random.shuffle(batches)
-    batches = batches[:subset]
+
     print("Done with Batches")
 
     for epoch in range(num_epochs):
@@ -81,6 +81,11 @@ def train():
         total_loss = 0
 
         for index, batch in enumerate(batches):
+            # Calculate the percentage of completion
+            percentage = (index + 1) / len(batches) * 100
+
+            # Print the percentage
+            print(f"Processing batch {index + 1}/{len(batches)} - {percentage:.2f}% completed")
             # Pad the current batch
             in_tensor, out_tensor, predicted_tensor = pad_batch(batch)
 
