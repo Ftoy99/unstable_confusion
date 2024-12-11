@@ -72,20 +72,13 @@ def train():
     print("Preparing Batches")
     for sentence_pair in create_batches(data_gen, batch_size):
         batches.append(sentence_pair)
-    random.shuffle(batches)
-
     print("Done with Batches")
 
     for epoch in range(num_epochs):
         model.train()
         total_loss = 0
-
+        random.shuffle(batches)
         for index, batch in enumerate(batches):
-            # Calculate the percentage of completion
-            percentage = (index + 1) / len(batches) * 100
-
-            # Print the percentage
-            print(f"Processing batch {index + 1}/{len(batches)} - {percentage:.2f}% completed")
             # Pad the current batch
             in_tensor, out_tensor, predicted_tensor = pad_batch(batch)
 
