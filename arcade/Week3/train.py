@@ -63,11 +63,11 @@ def train():
     criterion = nn.CrossEntropyLoss()  # Common loss function for sequence-to-sequence tasks
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
-    batch_size = 100
+    batch_size = 1000
     num_epochs = 10
     data_gen = dataset_generator()
 
-    subset = 100
+    subset = 1000
     batches = []
     print("Preparing Batches")
     for batch in create_batches(data_gen, batch_size):
@@ -81,7 +81,6 @@ def train():
         total_loss = 0
 
         for index, batch in enumerate(batches):
-            print(f"Processing batch {index}")
             # Pad the current batch
             in_tensor, out_tensor, predicted_tensor = pad_batch(batch)
 
