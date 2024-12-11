@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transformer AIAYN</title>
+    <!-- TailwindCSS (Minified) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+</head>
+<body class="bg-gray-900 text-gray-200 min-h-screen flex items-center justify-center">
+    <div class="bg-gray-800 shadow-md rounded px-8 py-6 w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-4 text-center text-gray-100">Transformer AIAYN</h1>
+
+        <!-- Input Form -->
+        <form hx-post="/translate" hx-target="#results" class="space-y-4">
+            <!-- Text Input -->
+            <div>
+                <label for="input-text" class="block text-sm font-medium text-gray-300">Enter English Text:</label>
+                <textarea id="input-text" name="text" rows="4" class="mt-1 block w-full border border-gray-700 bg-gray-700 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-200" placeholder="Type your text here..."></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none">Translate</button>
+            </div>
+        </form>
+
+        <!-- Translation Results -->
+        <div id="results" class="mt-6 space-y-4">
+            <div class="p-4 bg-gray-700 border border-gray-600 rounded text-gray-200">
+                <h2 class="font-semibold">Functional Translation:</h2>
+                <p class="italic">Your functional translation will appear here...</p>
+            </div>
+            <div class="p-4 bg-gray-700 border border-gray-600 rounded text-gray-200">
+                <h2 class="font-semibold">Transformer Translation:</h2>
+                <p class="italic">Your transformer-based translation will appear here...</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
