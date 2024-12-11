@@ -6,12 +6,10 @@ To translate from english to made up language defined in main
 3) feed to model
 4) take output tokens and convert to made up language
 
-
 Need 2 dictionaries
 1 for english
 1 for madeup language
 """
-from .TransformerDictionary import TransformerDictionary
 
 len_to_words = {
     2: ["kelp"],
@@ -25,13 +23,7 @@ len_to_words = {
     10: ["spicy", "cod", "roe"]
 }
 
-
-def main():
-    english_dictionary = TransformerDictionary(name="english")
-    made_up_dictionary = TransformerDictionary(name="made_up")
-
-
-def translate_functional(sentence):
+def translate_functional(sentence)->list[str]:
     """
     2 -> Kelp
     3 -> Fish Flakes
@@ -46,14 +38,9 @@ def translate_functional(sentence):
     :param sentence:
     :return:
     """
-
     output = []
     for word in sentence:
         if len(word) in len_to_words:
             output.extend(len_to_words[len(word)])
 
     return output
-
-
-if __name__ == '__main__':
-    main()

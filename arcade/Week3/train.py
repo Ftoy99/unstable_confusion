@@ -1,6 +1,7 @@
 import torch
 from torch import nn, optim
 
+from models.transformers.AIAYN import load_model, save_model
 from .TransformerDictionary import TransformerDictionary
 from .prepare_dataset import get_gutenberg_generator
 from .translate import translate_functional
@@ -13,20 +14,6 @@ made_up_dictionary = TransformerDictionary(name="made_up")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 model_path = "arcade/Week3/weights/AIAYN.pth"  # The file where the model will be saved
-
-
-def save_model(model):
-    torch.save(model.state_dict(), model_path)
-    print(f"Model saved")
-
-
-def load_model(model):
-    try:
-        model.load_state_dict(torch.load(model_path))
-        print("Model loaded successfully.")
-    except FileNotFoundError:
-        print("No saved model found. Starting from scratch.")
-
 
 def dataset_generator():
     for sentence in get_gutenberg_generator():
@@ -76,7 +63,7 @@ def train():
                   output_dictionary_size=len(made_up_dictionary.dictionary)).to(device)
 
     # Load the model if it exists
-    load_model(model)
+    load_model(model_path,model)
 
     criterion = nn.CrossEntropyLoss()  # Common loss function for sequence-to-sequence tasks
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
@@ -119,7 +106,7 @@ def train():
             total_loss += loss.item()
 
         print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {total_loss / (len(batch) * batch_size)}")
-        save_model(model)
+        save_model(model_path,model)
 
 
 if __name__ == '__main__':

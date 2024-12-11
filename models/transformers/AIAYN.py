@@ -154,3 +154,15 @@ class Decoder(nn.Module):
         mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1)  # Upper triangular matrix
         mask = mask == 0  # Invert: True for allowed positions, False for masked positions
         return mask
+
+def save_model(path,model):
+    torch.save(model.state_dict(), path)
+    print(f"Model saved")
+
+
+def load_model(path,model):
+    try:
+        model.load_state_dict(torch.load(path))
+        print("Model loaded successfully.")
+    except FileNotFoundError:
+        print("No saved model found. Starting from scratch.")
