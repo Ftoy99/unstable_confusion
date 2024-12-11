@@ -67,7 +67,7 @@ def train():
     num_epochs = 10
     data_gen = dataset_generator()
 
-    subset = 100
+    subset = 1000
     batches = []
     print("Preparing Batches")
     for batch in create_batches(data_gen, batch_size):
