@@ -1,4 +1,4 @@
-import torch
+from torch import device, cuda
 import uvicorn
 from fastapi import FastAPI, Form
 from starlette.requests import Request
@@ -14,7 +14,7 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
 # Torch Device to run model on
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = device("cuda" if cuda.is_available() else "cpu")
 
 # Transformed globals
 english_dictionary = TransformerDictionary(name="english")
@@ -25,8 +25,6 @@ model = AIAYN(input_dictionary_size=len(english_dictionary.dictionary) + 1,
 # Load Model Weights
 path_to_weights = "arcade/Week3/weights/AIAYN.pth"
 load_model(path_to_weights,model)
-
-
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -41,6 +39,7 @@ async def translate(text: str = Form(...)):
     functional_translation = " ".join(translate_functional(sentence))
 
     # Transformer translation logic
+    output_tensor = model(input_output)
     transformer_translation = "".join(["\u2022" + char for char in text])  # Add a dot before each character
 
     # Return both translations as HTML
