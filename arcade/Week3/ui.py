@@ -19,7 +19,13 @@ app = FastAPI()
 script_dir = os.path.dirname(os.path.abspath(__file__))  # Absolute path of the script
 
 # Resolve templates path relative to the script directory
-templates = Jinja2Templates(directory=os.path.join(script_dir, "templates"))
+templates_dir = os.path.join(script_dir, "templates")
+
+# Check if the path to the templates directory exists
+if not os.path.isdir(templates_dir):
+    print(f"Warning: templates directory not found at {templates_dir}")
+
+templates = Jinja2Templates(directory=templates_dir)
 
 # Torch Device to run model on
 device = device("cuda" if cuda.is_available() else "cpu")
