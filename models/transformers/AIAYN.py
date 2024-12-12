@@ -9,7 +9,7 @@ from torch import nn
 class AIAYN(nn.Module):
     """Transformer class as described in Attention is all you need"""
 
-    def __init__(self, input_dictionary_size, output_dictionary_size, embedding_dim_size=32, max_sentences=9999):
+    def __init__(self, input_dictionary_size, output_dictionary_size, embedding_dim_size=512, max_sentences=9999):
         super(AIAYN, self).__init__()
         # Embeddings transform tokens to vectors
         self.input_embedding = nn.Embedding(num_embeddings=input_dictionary_size, embedding_dim=embedding_dim_size)
@@ -74,7 +74,7 @@ class PositionalEncoding(nn.Module):
 class Encoder(nn.Module):
     """Encoder class for the AIAYN Transformer"""
 
-    def __init__(self, embedding_dim_size=32):
+    def __init__(self, embedding_dim_size=512):
         super(Encoder, self).__init__()
         self.multi_head_attention = nn.MultiheadAttention(num_heads=4, embed_dim=embedding_dim_size)
 
@@ -107,7 +107,7 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
     """Decoder class for the AIAYN Transformer"""
 
-    def __init__(self, embedding_dim_size=32):
+    def __init__(self, embedding_dim_size=512):
         super(Decoder, self).__init__()
         self.masked_multi_head_attention = nn.MultiheadAttention(num_heads=4, embed_dim=embedding_dim_size)
         self.multi_head_attention = nn.MultiheadAttention(num_heads=4, embed_dim=embedding_dim_size)
