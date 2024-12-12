@@ -62,6 +62,7 @@ async def translate(text: str = Form(...)):
 
     # Translate with transformer
     output_tensor = model(input_tensor, output_tensor)
+    output_tensor[:, :, 0] = -float('inf')  # Mask 0 because it has the highest probability
     _, indices = torch.max(output_tensor, dim=-1)
     transformer_translation = indices.squeeze().tolist()
     transformer_translation = [made_up_dictionary.to_word(token) for token in transformer_translation]
