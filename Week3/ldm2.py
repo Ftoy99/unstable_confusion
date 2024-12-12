@@ -15,7 +15,7 @@ class LatentDiffusionModel(nn.Module):
         # Linear noise schedule (betas)
         self.betas = torch.linspace(beta_start, beta_end, timesteps)
         self.alphas = 1 - self.betas
-        self.alpha_cumprod = torch.cumprod(self.alphas, dim=0)
+        self.alpha_cumprod = torch.cumprod(self.alphas, dim=0).to(self.device)
 
     def forward(self, x_0, t):
         """
