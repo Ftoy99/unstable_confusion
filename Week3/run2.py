@@ -10,6 +10,12 @@ from safetensors.torch import load_model, save_model
 
 from ldm2 import LatentDiffusionModel
 
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+    print("CUDA is available. Using device:", device)
+else:
+    device = torch.device("cpu")
+    print("CUDA is not available. Using device:", device)
 
 def display_image(image_title_pairs: tuple[Image, str]):
     # Determine the number of images
@@ -61,7 +67,7 @@ def run():
     # latent_representation = add_noise(latent_representation,t)
     for t in reversed(range(0, timesteps.size(0))):
         print(f"Starting step {t}")
-        t_tensor = torch.tensor([t], dtype=torch.long)
+        t_tensor = torch.tensor([t], dtype=torch.long).to(device)
         latent_representation = ldm.reverse_diffusion(latent_representation, t_tensor)
 
     # Decode the latent representation back to an image
