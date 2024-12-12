@@ -96,8 +96,6 @@ def train():
             output = model(in_tensor, out_tensor)
 
             _, indices = torch.max(output, dim=-1)
-            transformer_translation = indices.squeeze().tolist()
-            transformer_translation = [made_up_dictionary.to_word(token) for token in transformer_translation]
 
             output_flat = output.view(-1, output.shape[-1])
             predicted_tensor_flat = predicted_tensor.view(-1)
