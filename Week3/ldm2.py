@@ -15,7 +15,7 @@ class LatentDiffusionModel(nn.Module):
         # Linear noise schedule (betas)
         self.betas = torch.linspace(beta_start, beta_end, timesteps)
         self.alphas = 1 - self.betas
-        self.alpha_cumprod = torch.cumprod(self.alphas, dim=0).to(self.device)
+        self.alpha_cumprod = torch.cumprod(self.alphas, dim=0)
 
     def forward(self, x_0, t):
         """
@@ -32,6 +32,8 @@ class LatentDiffusionModel(nn.Module):
         Apply the forward diffusion process: q(x_t | x_0)
         Adds noise to the image based on timestep t.
         """
+        print(self.alpha_cumprod[t].device)
+        print(t.device)
         return torch.sqrt(self.alpha_cumprod[t]) * x_0 + torch.sqrt(1 - self.alpha_cumprod[t]) * noise
 
     def reverse_diffusion(self, x_t, t):
