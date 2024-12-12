@@ -3,7 +3,7 @@ from torch import nn
 import torch
 import torch.nn as nn
 
-from Week3.unet2 import UNet
+from unet2 import UNet
 
 
 class LatentDiffusionModel(nn.Module):
