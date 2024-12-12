@@ -45,7 +45,7 @@ def run():
     model.eval()
 
     image = load_image("img/cat.jpg")
-    image = image.resize((256, 256))
+    image = image.resize((64, 64))
 
     # Convert the image to a tensor
     image_tensor = torch.from_numpy(np.array(image)).float() / 255.0
@@ -55,10 +55,11 @@ def run():
     with torch.no_grad():
         latent_representation = model.encode(image_tensor).latent_dist.sample()
 
-    steps = 1000
+    steps = 200
     timesteps = torch.arange(0, steps)
     # latent_representation = add_noise(latent_representation,t)
     for t in reversed(range(0, timesteps.size(0))):
+        print(f"Starting step {t}")
         t_tensor = torch.tensor([t], dtype=torch.long)
         latent_representation = ldm.reverse_diffusion(latent_representation, t_tensor)
 

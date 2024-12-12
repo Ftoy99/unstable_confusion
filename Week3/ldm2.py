@@ -40,9 +40,7 @@ class LatentDiffusionModel(nn.Module):
         x_t: Noisy image at timestep t
         t: Timestep for reverse diffusion (denoising)
         """
-        # Get timestep embedding (temb)
-        temb = self.get_timestep_embedding(t)
-        noise_pred = self.unet(x_t, temb)
+        noise_pred = self.unet(x_t, t)
         x_0_pred = self.predict_x0(x_t, t, noise_pred)
         return x_0_pred
 
