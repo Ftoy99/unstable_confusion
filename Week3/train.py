@@ -60,7 +60,9 @@ def train_ldm_model(ldm, vae, dataloader, epochs, lr, device):
 
 if __name__ == "__main__":
     # Initialize model and training parameters
-    ldm = LatentDiffusionModel()  # Replace with your LDM model initialization
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    ldm = LatentDiffusionModel(device=device)  # Replace with your LDM model initialization
 
     # Autoencoder
     url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"
@@ -78,7 +80,7 @@ if __name__ == "__main__":
     # Training parameters
     epochs = 10
     lr = 1e-4
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
     # Move models to device
     ldm.to(device)
