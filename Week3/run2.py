@@ -42,10 +42,11 @@ def run():
     url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"
     model = AutoencoderKL.from_single_file(url)
 
+    ldm.eval()
     model.eval()
 
     image = load_image("img/cat.jpg")
-    image = image.resize((64, 64))
+    image = image.resize((128, 128))
 
     # Convert the image to a tensor
     image_tensor = torch.from_numpy(np.array(image)).float() / 255.0
