@@ -67,7 +67,7 @@ def train():
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
     batch_size = 100
-    num_epochs = 1
+    num_epochs = 10
     data_gen = dataset_generator()
 
     batches = []
