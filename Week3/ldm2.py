@@ -7,7 +7,7 @@ from unet2 import UNet
 
 
 class LatentDiffusionModel(nn.Module):
-    def __init__(self, timesteps=1000, beta_start=1e-4, beta_end=0.02):
+    def __init__(self, timesteps=1000, beta_start=1e-4, beta_end=0.02,device="cpu"):
         super(LatentDiffusionModel, self).__init__()
         self.unet = UNet()
         self.timesteps = timesteps
@@ -15,7 +15,7 @@ class LatentDiffusionModel(nn.Module):
         # Linear noise schedule (betas)
         self.betas = torch.linspace(beta_start, beta_end, timesteps)
         self.alphas = 1 - self.betas
-        self.alpha_cumprod = torch.cumprod(self.alphas, dim=0)
+        self.alpha_cumprod = torch.cumprod(self.alphas, dim=0).device
 
     def forward(self, x_0, t):
         """
@@ -32,8 +32,6 @@ class LatentDiffusionModel(nn.Module):
         Apply the forward diffusion process: q(x_t | x_0)
         Adds noise to the image based on timestep t.
         """
-        print(t.device)
-        print(self.alpha_cumprod.device)
         return torch.sqrt(self.alpha_cumprod[t]) * x_0 + torch.sqrt(1 - self.alpha_cumprod[t]) * noise
 
     def reverse_diffusion(self, x_t, t):

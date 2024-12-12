@@ -43,7 +43,7 @@ def load_image(path) -> Image:
 
 
 def run():
-    ldm = LatentDiffusionModel().to(device)
+    ldm = LatentDiffusionModel(device=device).to(device)
 
     url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"
     model = AutoencoderKL.from_single_file(url).to(device)
