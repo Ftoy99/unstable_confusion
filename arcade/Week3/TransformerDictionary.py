@@ -1,6 +1,7 @@
 import os
 import pickle
 
+
 class TransformerDictionary:
     def __init__(self, name, path_to_dictionaries="dictionaries"):
         self.name = name
@@ -34,9 +35,9 @@ class TransformerDictionary:
             return self.learn_word(word)
 
     def to_word(self, token):
-        reverse_dict = reversed(self.dictionary)
-        if token in reverse_dict:
-            return reverse_dict[token]
+        reverse_dictionary = {v: k for k, v in self.dictionary.items()}
+        if token in reverse_dictionary:
+            return reverse_dictionary[token]
         else:
             return ""
 
