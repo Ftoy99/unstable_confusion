@@ -2,13 +2,14 @@ from torch import nn
 
 import torch
 import torch.nn as nn
-from unet import UNetModel
+
+from Week3.unet2 import UNet
 
 
 class LatentDiffusionModel(nn.Module):
     def __init__(self, timesteps=1000, beta_start=1e-4, beta_end=0.02):
         super(LatentDiffusionModel, self).__init__()
-        self.unet = UNetModel()
+        self.unet = UNet()
         self.timesteps = timesteps
 
         # Linear noise schedule (betas)

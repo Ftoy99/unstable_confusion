@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 import safetensors
 from safetensors.torch import load_model, save_model
 
-from ldm import LatentDiffusionModel
+from ldm2 import LatentDiffusionModel
 
 
 def display_image(image_title_pairs: tuple[Image, str]):
@@ -55,10 +55,10 @@ def run():
     with torch.no_grad():
         latent_representation = model.encode(image_tensor).latent_dist.sample()
 
-    timesteps = 1000
-
+    steps = 1000
+    timesteps = torch.arange(0, steps)
     # latent_representation = add_noise(latent_representation,t)
-    for t in reversed(range(0, timesteps)):
+    for t in reversed(range(0, timesteps.size(0))):
         t_tensor = torch.tensor([t], dtype=torch.long)
         latent_representation = ldm.reverse_diffusion(latent_representation, t_tensor)
 

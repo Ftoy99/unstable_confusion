@@ -1,28 +1,52 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class ResNetBlock(nn.Module):
     def __init__(self, in_ch, out_ch, temb_dim, dropout=0.):
         super(ResNetBlock, self).__init__()
+
+        # First convolution layer
         self.conv1 = nn.Conv2d(in_ch, out_ch, kernel_size=3, stride=1, padding=1)
         self.norm1 = nn.GroupNorm(32, out_ch)
+
+        # Second convolution layer
         self.conv2 = nn.Conv2d(out_ch, out_ch, kernel_size=3, stride=1, padding=1)
         self.norm2 = nn.GroupNorm(32, out_ch)
+
+        # Dropout layer if specified
         self.dropout = nn.Dropout(dropout)
+
+        # Time-step embedding projection
         self.temb_proj = nn.Linear(temb_dim, out_ch)
+
+        # Shortcut for residual connection (1x1 convolution to match channels)
         self.nin_shortcut = nn.Conv2d(in_ch, out_ch, kernel_size=1, stride=1, padding=0)
 
     def forward(self, x, temb):
+        # Ensure input x is a tensor and not None
+        if x is None:
+            raise ValueError("Input tensor x cannot be None")
+
+        # First convolution, normalization, and activation
         h = self.conv1(x)
         h = self.norm1(h)
-        h = torch.silu(h)
-        h = h + self.temb_proj(torch.silu(temb))[:, :, None, None]
+        h = h * torch.sigmoid(h)  # Apply sigmoid as the activation function
+
+        # Add timestep embedding (broadcast across spatial dims)
+        h = h + self.temb_proj(temb * torch.sigmoid(temb))[:, :, None, None]
+
+        # Second convolution, normalization, and activation
         h = self.conv2(h)
         h = self.norm2(h)
-        h = torch.silu(h)
+        h = h * torch.sigmoid(h)  # Apply sigmoid as the activation function
+
+        # Apply dropout if specified
         h = self.dropout(h)
-        return x + h
+
+        # Add the residual (shortcut connection)
+        return x + self.nin_shortcut(x) + h
 
 
 class AttentionBlock(nn.Module):
@@ -54,11 +78,14 @@ class AttentionBlock(nn.Module):
 
 
 class UNetModel(nn.Module):
-    def __init__(self, image_size=64, in_channels=3, out_channels=3, model_channels=224,
-                 attention_resolutions=[8, 4, 2], num_res_blocks=2, channel_mult=[1, 2, 3, 4],
+    def __init__(self, in_channels=4, out_channels=4, model_channels=128,
+                 attention_resolutions=None, num_res_blocks=2, channel_mult=None,
                  num_head_channels=32, dropout=0.):
         super(UNetModel, self).__init__()
-        self.image_size = image_size
+        if channel_mult is None:
+            channel_mult = [1, 2, 3, 4]
+        if attention_resolutions is None:
+            attention_resolutions = [8, 4, 2]
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.model_channels = model_channels
@@ -84,9 +111,9 @@ class UNetModel(nn.Module):
         # Downsampling and ResNet blocks
         for i, mult in enumerate(channel_mult):
             down_block = []
+            in_channels = model_channels if i == 0 else model_channels * channel_mult[i - 1]  # Correct input channels
             for _ in range(num_res_blocks):
-                down_block.append(ResNetBlock(model_channels * channel_mult[i],
-                                              model_channels * mult, model_channels, dropout))
+                down_block.append(ResNetBlock(in_channels, model_channels * mult, model_channels, dropout))
             self.down_blocks.append(nn.ModuleList(down_block))
 
         # Attention blocks
@@ -113,7 +140,7 @@ class UNetModel(nn.Module):
                 h = self.attn_blocks[i](h, temb)
             hs.append(h)
             if i != len(self.down_blocks) - 1:
-                h = torch.avg_pool2d(h, 2, stride=2)
+                h = F.avg_pool2d(h, 2, stride=2)
 
         # Middle
         h = self.down_blocks[-1][-1](h, temb)
@@ -130,7 +157,7 @@ class UNetModel(nn.Module):
                 h = torch.nn.functional.interpolate(h, scale_factor=2, mode='nearest')
 
         # Final output layer
-        h = torch.silu(h)
+        h = h * torch.sigmoid(h)
         h = self.conv_out(h)
 
         return h
