@@ -3,9 +3,22 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms, datasets
 # This next 2 imports are needed 4 some reason
 import safetensors
-from safetensors.torch import load_model, save_model
+from safetensors.torch import load_model, save_model, save_file
 from diffusers import AutoencoderKL
 from Week3.ldm2 import LatentDiffusionModel
+
+
+def save_model(model, file_path):
+    """
+    Save the model's state dictionary to a file.
+
+    Args:
+        model: The model to save.
+        file_path: The file path where the model will be saved.
+    """
+    state_dict = model.state_dict()
+    save_file(state_dict, file_path)
+    print(f"Model saved to {file_path}")
 
 
 def train_ldm_model(ldm, vae, dataloader, epochs, lr, device):
@@ -27,7 +40,7 @@ def train_ldm_model(ldm, vae, dataloader, epochs, lr, device):
 
             # Add noise to the latents (forward diffusion)
             t = torch.randint(0, 1000, (latents.size(0),), device=device).long()
-            x_t, noise = ldm(latents,t)
+            x_t, noise = ldm(latents, t)
 
             # Predict noise
             optimizer.zero_grad()
@@ -41,6 +54,7 @@ def train_ldm_model(ldm, vae, dataloader, epochs, lr, device):
             if batch_idx % 10 == 0:
                 print(f"Epoch [{epoch + 1}/{epochs}], Step [{batch_idx}/{len(dataloader)}], Loss: {loss.item():.4f}")
 
+        save_model(ldm, "weights/ldm.safetensors")
     print("Training complete!")
 
 
