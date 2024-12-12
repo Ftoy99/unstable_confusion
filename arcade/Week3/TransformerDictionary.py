@@ -22,6 +22,7 @@ class TransformerDictionary:
         else:
             print(f"The file {dictionary_path} does not exist. Creating")
             self.save()
+        self.reverse_dictionary = {v: k for k, v in self.dictionary.items()}
 
     def learn_word(self, word):
         if word not in self.dictionary:
@@ -35,11 +36,9 @@ class TransformerDictionary:
             return self.learn_word(word)
 
     def to_word(self, token):
-        reverse_dictionary = {v: k for k, v in self.dictionary.items()}
-        if token in reverse_dictionary:
-            return reverse_dictionary[token]
-        else:
-            return ""
+        if token in self.reverse_dictionary:
+            return self.reverse_dictionary[token]
+        raise RuntimeError("Word not found in dictionary")
 
     def save(self):
         dictionary_path = os.path.join(self.path_to_dictionaries, self.name + ".pkl")
