@@ -74,12 +74,15 @@ class PositionalEncoding(nn.Module):
 class Encoder(nn.Module):
     """Encoder class for the AIAYN Transformer"""
 
-    def __init__(self, embedding_dim_size=512):
+    def __init__(self, embedding_dim_size=512, dropout=0.1):
         super(Encoder, self).__init__()
         self.multi_head_attention = nn.MultiheadAttention(num_heads=4, embed_dim=embedding_dim_size)
 
         self.normalization1 = nn.LayerNorm(embedding_dim_size)
         self.normalization2 = nn.LayerNorm(embedding_dim_size)
+
+        self.dropout1 = nn.Dropout(p=dropout)
+        self.dropout2 = nn.Dropout(p=dropout)
 
         # 3.3 feed forward
         self.feed_forward = nn.Sequential(
@@ -91,6 +94,7 @@ class Encoder(nn.Module):
     def forward(self, embedding):
         # Attention -> outpus Attention -> weights
         attn, _ = self.multi_head_attention(embedding, embedding, embedding)
+        attn = self.dropout1(attn)
 
         # Add & Norm
         attn_embedding = self.normalization1(embedding + attn)
@@ -99,6 +103,7 @@ class Encoder(nn.Module):
         output = self.feed_forward(attn_embedding)
 
         # Add & Norm
+        output = self.dropout1(output)
         output = self.normalization2(attn_embedding + output)
 
         return output
@@ -107,7 +112,7 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
     """Decoder class for the AIAYN Transformer"""
 
-    def __init__(self, embedding_dim_size=512):
+    def __init__(self, embedding_dim_size=512, dropout=0.1):
         super(Decoder, self).__init__()
         self.masked_multi_head_attention = nn.MultiheadAttention(num_heads=4, embed_dim=embedding_dim_size)
         self.multi_head_attention = nn.MultiheadAttention(num_heads=4, embed_dim=embedding_dim_size)
@@ -123,6 +128,10 @@ class Decoder(nn.Module):
             nn.Linear(embedding_dim_size * 4, embedding_dim_size)
         )
 
+        self.dropout1 = nn.Dropout(p=dropout)
+        self.dropout2 = nn.Dropout(p=dropout)
+        self.dropout3 = nn.Dropout(p=dropout)
+
     def forward(self, embedding, memory):
         # Embedding is the input , memory is the output from encoder
 
@@ -132,14 +141,18 @@ class Decoder(nn.Module):
         # masked multi head attn
         masked_attn, _ = self.masked_multi_head_attention(embedding, embedding, embedding, attn_mask=mask)
         out1 = self.normalization1(masked_attn + embedding)
+        out1 = self.dropout1(out1)
 
         out1 = out1.transpose(0, 1)  # [seq_len, batch_size, embedding_dim_size]
         memory = memory.transpose(0, 1)  # [seq_len, batch_size, embedding_dim_size]
         out1_attn, _ = self.multi_head_attention(memory, memory, out1)
 
         out2 = self.normalization2(out1_attn + out1)
+        out2 = self.dropout2(out2)
 
         out3 = self.feed_forward(out2)
+        out3 = self.dropout2(out3)
+
         output = self.normalization3(out3 + out2)
 
         return output
