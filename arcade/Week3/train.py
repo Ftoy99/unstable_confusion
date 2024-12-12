@@ -63,7 +63,7 @@ def train():
     # Load the model if it exists
     load_model(model_path, model)
 
-    criterion = nn.CrossEntropyLoss()  # Common loss function for sequence-to-sequence tasks
+    criterion = nn.CrossEntropyLoss(ignore_index=0)
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
     batch_size = 100

@@ -38,7 +38,7 @@ class AIAYN(nn.Module):
         # Pass through decoder with encoder memory
         output = self.decoder(target_embedding, memory)
         output = self.output_linear(output)
-        output = self.soft_max(output)
+        # output = self.soft_max(output)
         return output
 
 
@@ -158,16 +158,6 @@ class Decoder(nn.Module):
         return output
 
     def generate_mask(self, seq_len, dtype, device):
-        # """
-        # This makes mask that is triangle so first time max-1 are covered and by the end none are covered.
-        #
-        #
-        # Generate a mask for the self-attention in the decoder to prevent attending to future tokens.
-        # The mask will be a lower triangular matrix, where all values above the diagonal are True (masked).
-        # """
-        # mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1)  # Upper triangular matrix
-        # mask = mask == 0  # Invert: True for allowed positions, False for masked positions
-
         attn_mask = torch.full(
             (seq_len, seq_len), -float("Inf"), device=device, dtype=dtype
         )
