@@ -5,7 +5,7 @@ from torchvision import transforms, datasets
 import safetensors
 from safetensors.torch import load_model, save_model, save_file
 from diffusers import AutoencoderKL
-from Week3.ldm2 import LatentDiffusionModel
+from ldm2 import LatentDiffusionModel
 
 
 def save_model(model, file_path):
