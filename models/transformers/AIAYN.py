@@ -43,7 +43,7 @@ class AIAYN(nn.Module):
 
 
 class PositionalEncoding(nn.Module):
-    def __init__(self, embedding_dim_size=32, max_sentences=9999):
+    def __init__(self, embedding_dim_size=512, max_sentences=9999):
         super(PositionalEncoding, self).__init__()
         # For even = sin(pos/10000^(2*i/dmodel))
         # For odd = cod(pos/10000^(2*i/dmodel))
@@ -127,7 +127,7 @@ class Decoder(nn.Module):
         # Embedding is the input , memory is the output from encoder
 
         seq_len = embedding.size(0)
-        mask = self.generate_mask(seq_len,embedding.dtype,embedding.device)  # Create the mask for the self-attention
+        mask = self.generate_mask(seq_len, embedding.dtype, embedding.device)  # Create the mask for the self-attention
 
         # masked multi head attn
         masked_attn, _ = self.masked_multi_head_attention(embedding, embedding, embedding, attn_mask=mask)
@@ -144,7 +144,7 @@ class Decoder(nn.Module):
 
         return output
 
-    def generate_mask(self, seq_len,dtype,device):
+    def generate_mask(self, seq_len, dtype, device):
         # """
         # This makes mask that is triangle so first time max-1 are covered and by the end none are covered.
         #

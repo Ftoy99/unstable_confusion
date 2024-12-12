@@ -38,7 +38,8 @@ model = AIAYN(input_dictionary_size=len(english_dictionary.dictionary) + 1,
 
 # Load Model Weights
 path_to_weights = "weights/AIAYN.pth"
-load_model(path_to_weights,model)
+load_model(path_to_weights, model)
+
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -47,7 +48,7 @@ async def read_root(request: Request):
 
 @app.post("/translate", response_class=HTMLResponse)
 async def translate(text: str = Form(...)):
-    sentence = text.split(' ') # Split with spaces
+    sentence = text.split(' ')  # Split with spaces
 
     # Functional translation logic
     functional_translation_list = translate_functional(sentence)
@@ -56,13 +57,13 @@ async def translate(text: str = Form(...)):
 
     # Prepare Transformed Inputs in tensors padded etc.
     max_len = len(sentence)
-    input_tensor = pad_sequences([[english_dictionary.to_token(x.lower()) for x in sentence]],max_len,0,device)
-    output_tensor = pad_sequences([[]],max_len,0,device)
+    input_tensor = pad_sequences([[english_dictionary.to_token(x.lower()) for x in sentence]], max_len, 0, device)
+    output_tensor = pad_sequences([[]], max_len, 0, device)
 
     # Translate with transformer
-    output_tensor = model(input_tensor,output_tensor)
+    output_tensor = model(input_tensor, output_tensor)
     _, indices = torch.max(output_tensor, dim=-1)
-    transformer_translation = indices.squeeze().tolist()  # Add a dot before each ch
+    transformer_translation = indices.squeeze().tolist()
     transformer_translation = [made_up_dictionary.to_word(token) for token in transformer_translation]
 
     # Return both translations as HTML
@@ -78,8 +79,10 @@ async def translate(text: str = Form(...)):
     </div>
     """
 
+
 def run_ui():
     uvicorn.run("arcade.Week3.ui:app", host="127.0.0.1", port=9009, reload=True)
+
 
 if __name__ == '__main__':
     run_ui()
