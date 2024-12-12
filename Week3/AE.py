@@ -33,7 +33,7 @@ def display_image(image_title_pairs: tuple[Image, str]):
 
 
 def run_ae():
-
+    # for https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors
     url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"
     model = AutoencoderKL.from_single_file(url)
 
@@ -44,14 +44,17 @@ def run_ae():
 
     # Convert the image to a tensor
     image_tensor = torch.from_numpy(np.array(image)).float() / 255.0
-    image_tensor = image_tensor.permute(2, 0, 1).unsqueeze(0)  # Shape: [1, 3, H, W]
+    image_tensor = image_tensor.permute(2, 0, 1).unsqueeze(0)
 
     # Encode the image
     with torch.no_grad():
         latent_representation = model.encode(image_tensor).latent_dist.sample()
 
-
-
+    for x in latent_representation:
+        for i in range(4):
+            if i < x.shape[0]:
+                img = Image.fromarray(x[i].byte().cpu().numpy())
+                display_image([(img, f"Channel {i}")])
 
 
 
