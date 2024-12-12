@@ -16,6 +16,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 model_path = "weights/AIAYN.pth"  # The file where the model will be saved
 
+
 def dataset_generator():
     dataset = []
     for sentence in get_gutenberg_generator():
@@ -24,6 +25,7 @@ def dataset_generator():
         output_sequence = [0 for _ in sentence]  # Replace with your actual logic
         dataset.append((tokenized_sentence, output_sequence, func_translation))
     return dataset
+
 
 def create_batches(generator, batch_size):
     batch = []
@@ -47,9 +49,9 @@ def pad_batch(batch, padding_value=0, device=device):
         max(len(seq) for seq in predicted_sequences)
     )
 
-    in_tensor = pad_sequences(input_sequences, max_length, padding_value,device)
-    out_tensor = pad_sequences(output_sequences, max_length, padding_value,device)
-    predicted_tensor = pad_sequences(predicted_sequences, max_length, padding_value,device)
+    in_tensor = pad_sequences(input_sequences, max_length, padding_value, device)
+    out_tensor = pad_sequences(output_sequences, max_length, padding_value, device)
+    predicted_tensor = pad_sequences(predicted_sequences, max_length, padding_value, device)
 
     return in_tensor, out_tensor, predicted_tensor
 
@@ -59,13 +61,13 @@ def train():
                   output_dictionary_size=len(made_up_dictionary.dictionary) + 1).to(device)
     torch.autograd.set_detect_anomaly(True)
     # Load the model if it exists
-    load_model(model_path,model)
+    load_model(model_path, model)
 
-    criterion = nn.CrossEntropyLoss()  # Common loss function for sequence-to-sequence tasks
+    criterion = nn.CrossEntropyLoss(ignore_index=0)
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
     batch_size = 100
-    num_epochs = 100
+    num_epochs = 200
     data_gen = dataset_generator()
 
     batches = []
@@ -73,6 +75,8 @@ def train():
     for sentence_pair in create_batches(data_gen, batch_size):
         batches.append(sentence_pair)
     print("Done with Batches")
+
+    batches = batches[:100]
 
     for epoch in range(num_epochs):
         model.train()
@@ -82,7 +86,7 @@ def train():
             # Pad the current batch
             in_tensor, out_tensor, predicted_tensor = pad_batch(batch)
 
-            #Debug
+            # Debug
             # print(in_tensor.shape)
             # print(out_tensor.shape)
             # print(predicted_tensor.shape)
@@ -90,6 +94,8 @@ def train():
             # Forward pass
             optimizer.zero_grad()  # Clear previous gradients
             output = model(in_tensor, out_tensor)
+
+            _, indices = torch.max(output, dim=-1)
 
             output_flat = output.view(-1, output.shape[-1])
             predicted_tensor_flat = predicted_tensor.view(-1)
@@ -103,7 +109,7 @@ def train():
             total_loss += loss.item()
 
         print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {total_loss / (len(batch) * batch_size)}")
-        save_model(model_path,model)
+        save_model(model_path, model)
 
 
 if __name__ == '__main__':
