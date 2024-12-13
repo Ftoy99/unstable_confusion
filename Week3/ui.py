@@ -35,6 +35,7 @@ english_dictionary = TransformerDictionary(name="english")
 made_up_dictionary = TransformerDictionary(name="made_up")
 model = AIAYN(input_dictionary_size=len(english_dictionary.dictionary) + 1,
               output_dictionary_size=len(made_up_dictionary.dictionary) + 1).to(device)
+model.eval()
 
 # Load Model Weights
 path_to_weights = "weights/AIAYN.pth"
