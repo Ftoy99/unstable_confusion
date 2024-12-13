@@ -51,7 +51,7 @@ def run():
     ldm.eval()
     model.eval()
 
-    image = load_image("img/cat.jpg")
+    image = load_image("Week3/img/cat.jpg")
     image = image.resize((128, 128))
 
     # Convert the image to a tensor
