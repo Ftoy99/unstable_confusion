@@ -75,7 +75,7 @@ def run():
         reconstructed_image_tensor = model.decode(latent_representation)['sample']
 
     # Convert the tensor back to an image
-    reconstructed_image_tensor = reconstructed_image_tensor.squeeze(0).permute(1, 2, 0)  # Shape: [H, W, 3]
+    reconstructed_image_tensor = reconstructed_image_tensor.cpu().squeeze(0).permute(1, 2, 0)  # Shape: [H, W, 3]
     reconstructed_image = (reconstructed_image_tensor.clamp(0, 1) * 255).byte().numpy()
     reconstructed_image = Image.fromarray(reconstructed_image)
 
