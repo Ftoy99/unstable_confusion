@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 
 # This next 2 imports are needed 4 some reason
 import safetensors
-from safetensors.torch import load_model, save_model
+from safetensors.torch import load_model, save_model, load_file
 
 from ldm2 import LatentDiffusionModel
 
@@ -16,6 +16,13 @@ if torch.cuda.is_available():
 else:
     device = torch.device("cpu")
     print("CUDA is not available. Using device:", device)
+
+
+def load_model(model, file_path):
+    state_dict = load_file(file_path)  # Assuming you have a `load_file` function defined.
+    model.load_state_dict(state_dict)
+    print(f"Model loaded from {file_path}")
+
 
 def display_image(image_title_pairs: tuple[Image, str]):
     # Determine the number of images
@@ -44,6 +51,7 @@ def load_image(path) -> Image:
 
 def run():
     ldm = LatentDiffusionModel(device=device).to(device)
+    load_model(ldm,"weights/ldm.safetensors")
 
     url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"
     model = AutoencoderKL.from_single_file(url).to(device)
