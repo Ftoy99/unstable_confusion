@@ -9,7 +9,7 @@ from torch import nn
 class AIAYN(nn.Module):
     """Transformer class as described in Attention is all you need"""
 
-    def __init__(self, input_dictionary_size, output_dictionary_size, embedding_dim_size=512, max_sentences=9999):
+    def __init__(self, input_dictionary_size, output_dictionary_size, embedding_dim_size=512, max_sentences=9999,num_layers=6):
         super(AIAYN, self).__init__()
         # Embeddings transform tokens to vectors
         self.input_embedding = nn.Embedding(num_embeddings=input_dictionary_size, embedding_dim=embedding_dim_size)
@@ -17,8 +17,8 @@ class AIAYN(nn.Module):
 
         self.positional_encoding = PositionalEncoding(max_sentences=max_sentences)
 
-        self.encoder = Encoder(embedding_dim_size=embedding_dim_size)
-        self.decoder = Decoder(embedding_dim_size=embedding_dim_size)
+        self.encoder = nn.ModuleList([Encoder(embedding_dim_size=embedding_dim_size) for _ in range(num_layers)])
+        self.decoder = nn.ModuleList([Decoder(embedding_dim_size=embedding_dim_size) for _ in range(num_layers)])
 
         self.output_linear = nn.Linear(embedding_dim_size, output_dictionary_size)
         self.soft_max = nn.Softmax(dim=-1)
@@ -33,10 +33,15 @@ class AIAYN(nn.Module):
         target_embedding = self.positional_encoding(target_embedding)
 
         # Pass through encoder
-        memory = self.encoder(source_embedding)
+        memory = source_embedding
+        for encoder in self.encoder:
+            memory = encoder(memory)
 
-        # Pass through decoder with encoder memory
-        output = self.decoder(target_embedding, memory)
+        # Pass through each decoder layer with encoder memory
+        output = target_embedding
+        for decoder in self.decoder:
+            output = decoder(output, memory)
+
         output = self.output_linear(output)
         # output = self.soft_max(output)
         return output
@@ -143,9 +148,7 @@ class Decoder(nn.Module):
         out1 = self.normalization1(masked_attn + embedding)
         out1 = self.dropout1(out1)
 
-        out1 = out1.transpose(0, 1)  # [seq_len, batch_size, embedding_dim_size]
-        memory = memory.transpose(0, 1)  # [seq_len, batch_size, embedding_dim_size]
-        out1_attn, _ = self.multi_head_attention(memory, memory, out1)
+        out1_attn, _ = self.multi_head_attention(out1, memory, memory)
 
         out2 = self.normalization2(out1_attn + out1)
         out2 = self.dropout2(out2)
