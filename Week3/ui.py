@@ -82,7 +82,7 @@ async def translate(text: str = Form(...)):
 
 
 def run_ui():
-    uvicorn.run(app, host="127.0.0.1", port=9009, reload=True)
+    uvicorn.run(app, host="127.0.0.1", port=9009)
 
 
 if __name__ == '__main__':
