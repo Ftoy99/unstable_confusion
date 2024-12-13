@@ -1,12 +1,11 @@
 import torch
 from torch import nn, optim
 
+from AIAYN import AIAYN, save_model,load_model
 from sequence_helper import pad_sequences
-from models.transformers.AIAYN import load_model, save_model
 from TransformerDictionary import TransformerDictionary
 from prepare_dataset import get_gutenberg_generator
 from translate import translate_functional
-from models import AIAYN
 import random
 
 english_dictionary = TransformerDictionary(name="english")
