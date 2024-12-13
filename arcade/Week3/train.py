@@ -75,7 +75,7 @@ def train():
         batches.append(sentence_pair)
     print("Done with Batches")
 
-    batches = batches[:100]
+    batches = batches[:20]
 
     for epoch in range(num_epochs):
         model.train()
