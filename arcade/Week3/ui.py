@@ -11,7 +11,7 @@ from starlette.templating import Jinja2Templates
 from TransformerDictionary import TransformerDictionary
 from sequence_helper import pad_sequences
 from translate import translate_functional
-from models.transformers.AIAYN import AIAYN, load_model
+from AIAYN import AIAYN, load_model
 
 # Fast api globals
 app = FastAPI()
