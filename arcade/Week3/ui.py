@@ -8,9 +8,9 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from starlette.templating import Jinja2Templates
 
-from arcade.Week3.TransformerDictionary import TransformerDictionary
-from arcade.Week3.sequence_helper import pad_sequences
-from arcade.Week3.translate import translate_functional
+from TransformerDictionary import TransformerDictionary
+from sequence_helper import pad_sequences
+from translate import translate_functional
 from models.transformers.AIAYN import AIAYN, load_model
 
 # Fast api globals

@@ -1,11 +1,11 @@
 import torch
 from torch import nn, optim
 
-from arcade.Week3.sequence_helper import pad_sequences
+from sequence_helper import pad_sequences
 from models.transformers.AIAYN import load_model, save_model
-from arcade.Week3.TransformerDictionary import TransformerDictionary
-from arcade.Week3.prepare_dataset import get_gutenberg_generator
-from arcade.Week3.translate import translate_functional
+from TransformerDictionary import TransformerDictionary
+from prepare_dataset import get_gutenberg_generator
+from translate import translate_functional
 from models import AIAYN
 import random
 
