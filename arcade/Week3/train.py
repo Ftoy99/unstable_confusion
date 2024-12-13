@@ -67,7 +67,7 @@ def train():
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
     batch_size = 100
-    num_epochs = 1
+    num_epochs = 20
     data_gen = dataset_generator()
 
     batches = []
@@ -76,7 +76,7 @@ def train():
         batches.append(sentence_pair)
     print("Done with Batches")
 
-    batches = batches[:1]
+    batches = batches[:100]
 
     for epoch in range(num_epochs):
         model.train()
