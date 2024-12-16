@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import torch
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 from skimage.metrics import structural_similarity as ssim
@@ -52,6 +53,14 @@ def load_checkpoint(path, model, optimizer=None):
     return epoch
 
 
+def calculate_psnr(clean_image_np, denoised_image_np, data_range=1.0):
+    # Compute the Mean Squared Error (MSE)
+    mse = np.mean((clean_image_np - denoised_image_np) ** 2)
+    if mse == 0:
+        return 100  # If images are identical, return very high PSNR
+    return 10 * np.log10((data_range ** 2) / mse)
+
+
 def evaluate_denoising(model, dataloader, noise_level, device):
     model.eval()
     psnr_sum, ssim_sum, n_samples = 0, 0, 0
@@ -67,7 +76,7 @@ def evaluate_denoising(model, dataloader, noise_level, device):
             # Denoise the images
             denoised_images = model(noisy_images, timesteps).cpu()
 
-            # Evaluate SSIM
+            # Evaluate SSIM and PSNR
             for i in range(clean_images.size(0)):
                 clean_image_np = clean_images[i].cpu().numpy().transpose(1, 2, 0)  # HWC
                 denoised_image_np = denoised_images[i].cpu().numpy().transpose(1, 2, 0)  # HWC
@@ -77,8 +86,8 @@ def evaluate_denoising(model, dataloader, noise_level, device):
                 if win_size % 2 == 0:
                     win_size -= 1  # Ensure win_size is odd
 
+                # SSIM calculation
                 ssim_sum += ssim(
-
                     clean_image_np,
                     denoised_image_np,
                     multichannel=True,
@@ -86,11 +95,16 @@ def evaluate_denoising(model, dataloader, noise_level, device):
                     channel_axis=-1,  # Specify the channel axis for multichannel images
                     data_range=1.0,
                 )
+
+                # PSNR calculation
+                psnr_sum += calculate_psnr(clean_image_np, denoised_image_np, data_range=1.0)
+
                 total_images += 1
 
     avg_psnr = psnr_sum / total_images
     avg_ssim = ssim_sum / total_images
     print(f"PSNR: {avg_psnr:.2f}, SSIM: {avg_ssim:.2f}")
+    return avg_psnr, avg_ssim
 
 
 if __name__ == '__main__':
