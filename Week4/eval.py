@@ -2,6 +2,7 @@ import os
 
 import torch
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
+from skimage.metrics import structural_similarity as ssim
 from torch import optim
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader
@@ -54,6 +55,7 @@ def load_checkpoint(path, model, optimizer=None):
 def evaluate_denoising(model, dataloader, noise_level, device):
     model.eval()
     psnr_sum, ssim_sum, n_samples = 0, 0, 0
+    total_images = 0
     with torch.no_grad():
         for batch in dataloader:
             noisy_images, clean_images = prepare_batch(batch, noise_level)
