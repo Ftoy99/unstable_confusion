@@ -105,7 +105,7 @@ def main():
 
             # Timesteps (can vary depending on the application, e.g., diffusion timesteps)
             t = torch.randint(0, timesteps, (images.size(0),), device=device)
-            t.to(device)
+            t = t.to(device)
 
             noised_images, noise = gauss.q_sample(images, t)
             noise.to(device)
