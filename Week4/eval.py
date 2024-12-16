@@ -1,5 +1,10 @@
 import torch
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
+from torch import optim
+from torchvision import transforms, datasets
+from torch.utils.data import DataLoader
+
+from Week4.UNet import UNet
 
 
 def add_noise(images: torch.Tensor, noise_level: float) -> torch.Tensor:
@@ -20,6 +25,28 @@ def prepare_batch(batch, noise_level):
     images, _ = batch  # We don't need labels for denoising
     noisy_images = add_noise(images, noise_level)
     return noisy_images, images
+
+
+def load_checkpoint(path, model, optimizer=None):
+    """
+    Load the model and optimizer states from a checkpoint.
+    Args:
+        path: Path to the checkpoint.
+        model: PyTorch model to load into.
+        optimizer: (Optional) PyTorch optimizer to load into.
+    Returns:
+        The epoch at which training was saved.
+    """
+    if not os.path.exists(path):
+        print(f"Checkpoint file '{path}' does not exist. Skipping load.")
+        return
+    checkpoint = torch.load(path)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    if optimizer is not None:
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    epoch = checkpoint['epoch']
+    print(f"Checkpoint loaded from {path}, epoch: {epoch}")
+    return epoch
 
 
 def evaluate_denoising(model, dataloader, noise_level, device):
@@ -43,3 +70,23 @@ def evaluate_denoising(model, dataloader, noise_level, device):
     avg_psnr = psnr_sum / n_samples
     avg_ssim = ssim_sum / n_samples
     print(f"PSNR: {avg_psnr:.2f}, SSIM: {avg_ssim:.2f}")
+
+
+if __name__ == '__main__':
+    # Transform for dataset
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,))  # Normalize to [-1, 1] range
+    ])
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # Load dataset (e.g., CIFAR-10)
+    dataset = datasets.CIFAR10(root="./data", train=True, download=True, transform=transform)
+    dataloader = DataLoader(dataset, batch_size=100, shuffle=True)
+    noise_level = 0.1  # Standard deviation of added noise
+    unet = UNet()
+    optimizer = optim.Adam(unet.parameters(), lr=1e-4)
+    load_checkpoint("unet.pth", unet, optimizer)
+
+    evaluate_denoising(unet, dataloader, noise_level, device)
