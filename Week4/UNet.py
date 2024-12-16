@@ -1,4 +1,5 @@
 import math
+from typing import Optional
 
 import torch
 from torch import nn, Tensor
@@ -53,12 +54,17 @@ class UpSample(nn.Module):
 
 class DownBlock(nn.Module):
 
-    def __init__(self, in_channels, out_channels, time_channels):
+    def __init__(self, in_channels, out_channels, time_channels, has_attn):
         super(DownBlock, self).__init__()
         self.res = ResidualBlock(in_channels, out_channels, time_channels)
+        if has_attn:
+            self.attn = AttentionBlock(out_channels)
+        else:
+            self.attn = nn.Identity()
 
     def forward(self, x, t):
         x = self.res(x, t)
+        x = self.attn(x)
         return x
 
 
@@ -77,12 +83,18 @@ class MiddleBlock(nn.Module):
 
 class UpBlock(nn.Module):
 
-    def __init__(self, in_channels, out_channels, time_channels):
+    def __init__(self, in_channels, out_channels, time_channels, has_attn):
         super(UpBlock, self).__init__()
         self.res = ResidualBlock(in_channels + out_channels, out_channels, time_channels)
+        if has_attn:
+            self.attn = AttentionBlock(out_channels)
+        else:
+            self.attn = nn.Identity()
 
     def forward(self, x, t):
-        return self.res(x, t)
+        x = self.res(x, t)
+        x = self.attn(x)
+        return x
 
 
 class ResidualBlock(nn.Module):
@@ -125,9 +137,37 @@ class ResidualBlock(nn.Module):
         return h
 
 
+class AttentionBlock(nn.Module):
+    def __init__(self, n_channels: int, n_heads: int = 1, d_k: int = None, n_groups: int = 32):
+        super(AttentionBlock, self).__init__()
+        if d_k is None:
+            d_k = n_channels
+            self.norm = nn.GroupNorm(n_groups, n_channels)
+            self.projection = nn.Linear(n_channels, n_heads * d_k * 3)
+            self.output = nn.Linear(n_heads * d_k, n_channels)
+            self.scale = d_k ** -0.5
+            self.n_heads = n_heads
+            self.d_k = d_k
+
+    def forward(self, x: torch.Tensor):
+        batch_size, n_channels, height, width = x.shape
+        x = x.view(batch_size, n_channels, -1).permute(0, 2, 1)
+        qkv = self.projection(x).view(batch_size, -1, self.n_heads, 3 * self.d_k)
+        q, k, v = torch.chunk(qkv, 3, dim=-1)
+        attn = torch.einsum('bihd,bjhd->bijh', q, k) * self.scale
+        attn = attn.softmax(dim=2)
+        res = torch.einsum('bijh,bjhd->bihd', attn, v)
+        res = res.view(batch_size, -1, self.n_heads * self.d_k)
+        res = self.output(res)
+        res += x
+        res = res.permute(0, 2, 1).view(batch_size, n_channels, height, width)
+        return res
+
+
 class UNet(nn.Module):
 
-    def __init__(self, image_channels: int = 3, n_channels: int = 64, ch_mults=(1, 2, 2, 4)):
+    def __init__(self, image_channels: int = 3, n_channels: int = 64, ch_mults=(1, 2, 2, 4),
+                 is_attn=(False, False, True, True)):
         super(UNet, self).__init__()
         self.n_channels = n_channels
         self.time_emb = TimestepEmbedding(n_channels * 4)
@@ -143,7 +183,7 @@ class UNet(nn.Module):
         # Down blocks
         for i in range(n_resolutions):
             out_channels = in_channels * ch_mults[i]
-            down_block = DownBlock(in_channels, out_channels, time_channels=n_channels * 4)
+            down_block = DownBlock(in_channels, out_channels, time_channels=n_channels * 4,has_attn=is_attn[i])
             self.down.append(down_block)
             in_channels = out_channels
             if i < n_resolutions - 1:
@@ -155,10 +195,10 @@ class UNet(nn.Module):
         # Up Blocks
         in_channels = out_channels
         for i in reversed(range(n_resolutions)):
-            down_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4)
+            down_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4,has_attn=is_attn[i])
             self.up.append(down_block)
             out_channels = in_channels // ch_mults[i]
-            down_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4)
+            down_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4,has_attn=is_attn[i])
             self.up.append(down_block)
             in_channels = out_channels
             if i > 0:
