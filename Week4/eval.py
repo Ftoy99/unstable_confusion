@@ -63,9 +63,9 @@ def evaluate_denoising(model, dataloader, noise_level, device):
             denoised_images = model(noisy_images, timesteps).cpu()
 
             for i in range(clean_images.size(0)):
-                psnr_sum += peak_signal_noise_ratio(clean_images[i].numpy(), denoised_images[i].numpy())
-                ssim_sum += structural_similarity(clean_images[i].numpy().transpose(1, 2, 0),
-                                                  denoised_images[i].numpy().transpose(1, 2, 0),
+                psnr_sum += peak_signal_noise_ratio(clean_images[i].cpu().numpy(), denoised_images[i].cpu().numpy())
+                ssim_sum += structural_similarity(clean_images[i].cpu().numpy().transpose(1, 2, 0),
+                                                  denoised_images[i].cpu().numpy().transpose(1, 2, 0),
                                                   multichannel=True)
                 n_samples += 1
 
