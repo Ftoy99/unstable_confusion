@@ -18,7 +18,7 @@ class Gauss:
         # Compute alpha values
         self.alpha = 1 - self.beta
         self.alphas_cumprod = torch.cumprod(self.alpha, dim=0)  # \bar{\alpha}_t
-        self.sqrt_alpha_cumprod = self.alphas_cumprod.sqrt()  # \sqrt{\bar{\alpha}_t}
+        self.sqrt_alpha_cumprod = self.alphas_cumprod.sqrt().to(device=device)  # \sqrt{\bar{\alpha}_t}
         self.sqrt_one_minus_alpha_cumprod = (1 - self.alphas_cumprod).sqrt().to(device=device)  # \sqrt{1 - \bar{\alpha}_t}
 
     def q_sample(self, x_0, t):
