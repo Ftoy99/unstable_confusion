@@ -224,8 +224,6 @@ def make_attn(in_channels, attn_type="vanilla"):
         return AttnBlock(in_channels)
     elif attn_type == "none":
         return nn.Identity(in_channels)
-    else:
-        return LinAttnBlock(in_channels)
 
 
 class UNet(nn.Module):
@@ -374,6 +372,3 @@ class UNet(nn.Module):
         h = nonlinearity(h)
         h = self.conv_out(h)
         return h
-
-    def get_last_layer(self):
-        return self.conv_out.weight

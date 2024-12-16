@@ -1,0 +1,201 @@
+import math
+
+import torch
+from torch import nn, Tensor
+
+
+class Swish(nn.Module):
+    def forward(self, x):
+        return x * torch.sigmoid(x)
+
+
+class TimestepEmbedding(nn.Module):
+    def __init__(self, n_channels: int):
+        self.n_channels = n_channels
+        super(TimestepEmbedding, self).__init__()
+        self.linear1 = nn.Linear(n_channels // 4, n_channels)
+        self.swish = Swish()
+        self.linear2 = nn.Linear(n_channels, n_channels)
+
+    def forward(self, t: Tensor):
+        half_dim = self.n_channels // 8
+        emb = math.log(10_000) / (half_dim - 1)
+        emb = torch.exp(torch.arange(half_dim, device=t.device) * -emb)
+        emb = t[:, None] * emb[None, :]
+        emb = torch.cat((emb.sin(), emb.cos()), dim=1)
+        emb = self.linear1(emb)
+        emb = self.swish(emb)
+        emb = self.linear2(emb)
+        return emb
+
+
+class DownSample(nn.Module):
+
+    def __init__(self, n_channels):
+        super(DownSample, self).__init__()
+        # Kernel Strider Padding
+        self.conv = nn.Conv2d(n_channels, n_channels, (3, 3), (2, 2), (1, 1))
+
+    def forward(self, x, t):
+        return self.conv(x)
+
+
+class UpSample(nn.Module):
+
+    def __init__(self, n_channels):
+        super(UpSample, self).__init__()
+        # Kernel Strider Padding
+        self.conv = nn.ConvTranspose2d(n_channels, n_channels, (4, 4), (2, 2), (1, 1))
+
+    def forward(self, x, t):
+        return self.conv(x)
+
+
+class DownBlock(nn.Module):
+
+    def __init__(self, in_channels, out_channels, time_channels):
+        super(DownBlock, self).__init__()
+        self.res = ResidualBlock(in_channels, out_channels, time_channels)
+
+    def forward(self, x, t):
+        x = self.res(x, t)
+        return x
+
+
+class MiddleBlock(nn.Module):
+
+    def __init__(self, n_channels, time_channels):
+        super(MiddleBlock, self).__init__()
+        self.res1 = ResidualBlock(n_channels, n_channels, time_channels)
+        self.res2 = ResidualBlock(n_channels, n_channels, time_channels)
+
+    def forward(self, x, t):
+        x = self.res1(x, t)
+        x = self.res2(x, t)
+        return x
+
+
+class UpBlock(nn.Module):
+
+    def __init__(self, in_channels, out_channels, time_channels):
+        super(UpBlock, self).__init__()
+        self.res = ResidualBlock(in_channels + out_channels, out_channels, time_channels)
+
+    def forward(self, x, t):
+        return self.res(x, t)
+
+
+class ResidualBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, time_channels, n_groups: int = 32):
+        super(ResidualBlock, self).__init__()
+        self.norm1 = nn.GroupNorm(n_groups, in_channels)
+        self.swish1 = Swish()
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3), padding=(1, 1))
+
+        self.time_swish = Swish()
+        self.time_emb = nn.Linear(time_channels, out_channels)
+
+        self.norm2 = nn.GroupNorm(n_groups, out_channels)
+        self.swish2 = Swish()
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3), padding=(1, 1))
+
+        if in_channels != out_channels:
+            self.shortcut = nn.Conv2d(in_channels, out_channels, kernel_size=(1, 1))
+        else:
+            self.shortcut = nn.Identity()
+
+    def forward(self, x: Tensor, t: Tensor):
+
+        h = self.norm1(x)
+        h = self.swish1(h)
+        h = self.conv1(h)
+
+        t = self.time_emb(t)
+
+        h = h + t[:, :, None, None]
+
+        h = self.norm2(h)
+        h = self.swish2(h)
+        # TODO
+        # Dropout here
+        h = self.conv2(h)
+
+        h = h + self.shortcut(x)
+
+        return h
+
+
+class UNet(nn.Module):
+
+    def __init__(self, image_channels: int = 3, n_channels: int = 64, ch_mults=(1, 2, 2, 4)):
+        super(UNet, self).__init__()
+        self.n_channels = n_channels
+        self.time_emb = TimestepEmbedding(n_channels * 4)
+        self.image_proj = nn.Conv2d(image_channels, n_channels, kernel_size=(3, 3), padding=(1, 1))
+
+        self.down = nn.ModuleList()
+
+        self.up = nn.ModuleList()
+
+        n_resolutions = len(ch_mults)
+
+        out_channels = in_channels = n_channels  # n channels are the channels of the image_proj
+        # Down blocks
+        for i in range(n_resolutions):
+            out_channels = in_channels * ch_mults[i]
+            down_block = DownBlock(in_channels, out_channels, time_channels=n_channels * 4)
+            self.down.append(down_block)
+            in_channels = out_channels
+            if i < n_resolutions - 1:
+                down_sample = DownSample(out_channels)
+                self.down.append(down_sample)
+
+        self.middle = MiddleBlock(out_channels, n_channels * 4)
+
+        # Up Blocks
+        in_channels = out_channels
+        for i in reversed(range(n_resolutions)):
+            down_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4)
+            self.up.append(down_block)
+            out_channels = in_channels // ch_mults[i]
+            down_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4)
+            self.up.append(down_block)
+            in_channels = out_channels
+            if i > 0:
+                up_sample = UpSample(in_channels)
+                self.up.append(up_sample)
+
+        self.norm = nn.GroupNorm(8, n_channels)
+        self.act = Swish()
+        self.final = nn.Conv2d(in_channels, image_channels, kernel_size=(3, 3), padding=(1, 1))
+
+    def forward(self, x: Tensor, t: Tensor):
+        B, C, H, W = x.shape
+
+        t = self.time_emb(t)  # create embedding for timesteps
+
+        x = self.image_proj(x)  # project the image to higher channels
+        assert x.shape == (B, self.n_channels, H, W)
+
+        skip = [x]
+
+        # Down Blocks
+        for i, block in enumerate(self.down):
+            x = block(x, t)
+            skip.append(x)
+
+        x = self.middle(x, t)
+
+        # Up Blocks
+        for i, block in enumerate(self.up):
+            if isinstance(block, UpSample):
+                x = block(x, t)
+            else:
+                s = skip.pop()
+                x = torch.cat((x, s), dim=1)
+                x = block(x, t)
+
+        x = self.norm(x)
+        x = self.act(x)
+        x = self.final(x)
+        return x
