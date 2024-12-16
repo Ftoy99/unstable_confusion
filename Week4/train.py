@@ -106,7 +106,7 @@ optimizer = optim.Adam(model.parameters(), lr=1e-4)
 criterion = nn.MSELoss()
 
 # Training loop
-n_epochs = 1
+n_epochs = 30
 noise_level = 0.1  # Standard deviation of added noise
 start_epoch = load_checkpoint("unet.pth", model, optimizer)
 for epoch in range(n_epochs):
