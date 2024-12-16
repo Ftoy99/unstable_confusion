@@ -78,11 +78,13 @@ def evaluate_denoising(model, dataloader, noise_level, device):
                     win_size -= 1  # Ensure win_size is odd
 
                 ssim_sum += ssim(
+
                     clean_image_np,
                     denoised_image_np,
                     multichannel=True,
                     win_size=win_size,  # Explicitly set the window size
                     channel_axis=-1,  # Specify the channel axis for multichannel images
+                    data_range=1.0,
                 )
                 total_images += 1
 
