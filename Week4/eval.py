@@ -4,7 +4,7 @@ from torch import optim
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader
 
-from Week4.UNet import UNet
+from UNet import UNet
 
 
 def add_noise(images: torch.Tensor, noise_level: float) -> torch.Tensor:
