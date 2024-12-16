@@ -3,6 +3,7 @@ import torch.optim as optim
 import torch.nn as nn
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 from UNet import UNet
 
@@ -68,7 +69,8 @@ noise_level = 0.1  # Standard deviation of added noise
 for epoch in range(n_epochs):
     model.train()
     epoch_loss = 0
-    for batch in dataloader:
+    progress_bar = tqdm(dataloader, desc=f"Epoch {epoch + 1}/{n_epochs}", unit="batch")
+    for batch in progress_bar:
         noisy_images, clean_images = prepare_batch(batch, noise_level)
         noisy_images, clean_images = noisy_images.to(device), clean_images.to(device)
 
@@ -86,5 +88,7 @@ for epoch in range(n_epochs):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+
+        progress_bar.set_postfix(loss=loss.item())
 
     print(f"Epoch {epoch + 1}, Loss: {epoch_loss / len(dataloader)}")
