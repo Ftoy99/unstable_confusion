@@ -2,7 +2,6 @@ import os
 
 import numpy as np
 import torch
-from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 from skimage.metrics import structural_similarity as ssim
 from torch import optim
 from torchvision import transforms, datasets
