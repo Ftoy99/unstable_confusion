@@ -88,8 +88,8 @@ def evaluate_denoising(model, dataloader, noise_level, device):
                 )
                 total_images += 1
 
-    avg_psnr = psnr_sum / n_samples
-    avg_ssim = ssim_sum / n_samples
+    avg_psnr = psnr_sum / total_images
+    avg_ssim = ssim_sum / total_images
     print(f"PSNR: {avg_psnr:.2f}, SSIM: {avg_ssim:.2f}")
 
 
