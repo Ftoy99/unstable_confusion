@@ -119,6 +119,7 @@ for epoch in range(n_epochs):
 
         # Timesteps (can vary depending on the application, e.g., diffusion timesteps)
         timesteps = torch.randint(0, 1000, (noisy_images.size(0),), device=device) / 1000.0
+        timesteps.to(device)
 
         # Forward pass
         denoised_images = model(noisy_images, timesteps)
