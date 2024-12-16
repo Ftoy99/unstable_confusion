@@ -59,15 +59,30 @@ def evaluate_denoising(model, dataloader, noise_level, device):
             noisy_images, clean_images = prepare_batch(batch, noise_level)
             noisy_images, clean_images = noisy_images.to(device), clean_images.to(device)
 
-            timesteps = torch.zeros(noisy_images.size(0), device=device)  # e.g., constant timestep
+            # Generate timesteps for the denoising process
+            timesteps = torch.tensor([noise_level] * noisy_images.size(0), device=device)
+
+            # Denoise the images
             denoised_images = model(noisy_images, timesteps).cpu()
 
+            # Evaluate SSIM
             for i in range(clean_images.size(0)):
-                psnr_sum += peak_signal_noise_ratio(clean_images[i].cpu().numpy(), denoised_images[i].cpu().numpy())
-                ssim_sum += structural_similarity(clean_images[i].cpu().numpy().transpose(1, 2, 0),
-                                                  denoised_images[i].cpu().numpy().transpose(1, 2, 0),
-                                                  multichannel=True)
-                n_samples += 1
+                clean_image_np = clean_images[i].cpu().numpy().transpose(1, 2, 0)  # HWC
+                denoised_image_np = denoised_images[i].cpu().numpy().transpose(1, 2, 0)  # HWC
+
+                # Ensure the window size is appropriate for the image dimensions
+                win_size = min(denoised_image_np.shape[0], denoised_image_np.shape[1], 7)
+                if win_size % 2 == 0:
+                    win_size -= 1  # Ensure win_size is odd
+
+                ssim_sum += ssim(
+                    clean_image_np,
+                    denoised_image_np,
+                    multichannel=True,
+                    win_size=win_size,  # Explicitly set the window size
+                    channel_axis=-1,  # Specify the channel axis for multichannel images
+                )
+                total_images += 1
 
     avg_psnr = psnr_sum / n_samples
     avg_ssim = ssim_sum / n_samples
