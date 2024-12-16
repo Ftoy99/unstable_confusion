@@ -14,7 +14,7 @@ transform = transforms.Compose([
 
 # Load dataset (e.g., CIFAR-10)
 dataset = datasets.CIFAR10(root="./data", train=True, download=True, transform=transform)
-dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
+dataloader = DataLoader(dataset, batch_size=100, shuffle=True)
 
 
 def add_noise(images: torch.Tensor, noise_level: float) -> torch.Tensor:
