@@ -1,3 +1,5 @@
+import os
+
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -6,6 +8,46 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from UNet import UNet
+
+
+def load_checkpoint(path, model, optimizer=None):
+    """
+    Load the model and optimizer states from a checkpoint.
+    Args:
+        path: Path to the checkpoint.
+        model: PyTorch model to load into.
+        optimizer: (Optional) PyTorch optimizer to load into.
+    Returns:
+        The epoch at which training was saved.
+    """
+    if not os.path.exists(path):
+        print(f"Checkpoint file '{path}' does not exist. Skipping load.")
+        return
+    checkpoint = torch.load(path)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    if optimizer is not None:
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    epoch = checkpoint['epoch']
+    print(f"Checkpoint loaded from {path}, epoch: {epoch}")
+    return epoch
+
+
+def save_checkpoint(model, optimizer, epoch, path="unet_checkpoint.pth"):
+    """
+    Save the model and optimizer states.
+    Args:
+        model: PyTorch model to save.
+        optimizer: PyTorch optimizer to save.
+        epoch: Current epoch number.
+        path: Path to save the checkpoint.
+    """
+    torch.save({
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'epoch': epoch,
+    }, path)
+    print(f"Checkpoint saved at {path}")
+
 
 # Transform for dataset
 transform = transforms.Compose([
@@ -66,6 +108,7 @@ criterion = nn.MSELoss()
 # Training loop
 n_epochs = 1
 noise_level = 0.1  # Standard deviation of added noise
+start_epoch = load_checkpoint("unet.pth", model, optimizer)
 for epoch in range(n_epochs):
     model.train()
     epoch_loss = 0
@@ -90,5 +133,5 @@ for epoch in range(n_epochs):
         optimizer.step()
 
         progress_bar.set_postfix(loss=loss.item())
-
+    save_checkpoint(model, optimizer, epoch + 1, path=f"unet.pth")
     print(f"Epoch {epoch + 1}, Loss: {epoch_loss / len(dataloader)}")
