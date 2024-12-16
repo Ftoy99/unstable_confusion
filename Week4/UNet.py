@@ -142,12 +142,12 @@ class AttentionBlock(nn.Module):
         super(AttentionBlock, self).__init__()
         if d_k is None:
             d_k = n_channels
-            self.norm = nn.GroupNorm(n_groups, n_channels)
-            self.projection = nn.Linear(n_channels, n_heads * d_k * 3)
-            self.output = nn.Linear(n_heads * d_k, n_channels)
-            self.scale = d_k ** -0.5
-            self.n_heads = n_heads
-            self.d_k = d_k
+        self.norm = nn.GroupNorm(n_groups, n_channels)
+        self.projection = nn.Linear(n_channels, n_heads * d_k * 3)
+        self.output = nn.Linear(n_heads * d_k, n_channels)
+        self.scale = d_k ** -0.5
+        self.n_heads = n_heads
+        self.d_k = d_k
 
     def forward(self, x: torch.Tensor):
         batch_size, n_channels, height, width = x.shape
@@ -183,7 +183,7 @@ class UNet(nn.Module):
         # Down blocks
         for i in range(n_resolutions):
             out_channels = in_channels * ch_mults[i]
-            down_block = DownBlock(in_channels, out_channels, time_channels=n_channels * 4,has_attn=is_attn[i])
+            down_block = DownBlock(in_channels, out_channels, time_channels=n_channels * 4, has_attn=is_attn[i])
             self.down.append(down_block)
             in_channels = out_channels
             if i < n_resolutions - 1:
@@ -195,11 +195,11 @@ class UNet(nn.Module):
         # Up Blocks
         in_channels = out_channels
         for i in reversed(range(n_resolutions)):
-            down_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4,has_attn=is_attn[i])
-            self.up.append(down_block)
+            up_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4, has_attn=is_attn[i])
+            self.up.append(up_block)
             out_channels = in_channels // ch_mults[i]
-            down_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4,has_attn=is_attn[i])
-            self.up.append(down_block)
+            up_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4, has_attn=is_attn[i])
+            self.up.append(up_block)
             in_channels = out_channels
             if i > 0:
                 up_sample = UpSample(in_channels)
