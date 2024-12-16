@@ -87,7 +87,7 @@ if __name__ == '__main__':
     dataset = datasets.CIFAR10(root="./data", train=True, download=True, transform=transform)
     dataloader = DataLoader(dataset, batch_size=100, shuffle=True)
     noise_level = 0.1  # Standard deviation of added noise
-    unet = UNet()
+    unet = UNet().to(device)
     optimizer = optim.Adam(unet.parameters(), lr=1e-4)
     load_checkpoint("unet.pth", unet, optimizer)
 
