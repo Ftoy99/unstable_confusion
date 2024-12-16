@@ -98,7 +98,7 @@ class UpBlock(nn.Module):
 
 
 class ResidualBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, time_channels, n_groups: int = 32):
+    def __init__(self, in_channels, out_channels, time_channels, n_groups: int = 32,dropout: float = 0.1):
         super(ResidualBlock, self).__init__()
         self.norm1 = nn.GroupNorm(n_groups, in_channels)
         self.swish1 = Swish()
@@ -116,6 +116,7 @@ class ResidualBlock(nn.Module):
         else:
             self.shortcut = nn.Identity()
 
+        self.dropout = nn.Dropout(dropout)
     def forward(self, x: Tensor, t: Tensor):
 
         h = self.norm1(x)
@@ -129,7 +130,7 @@ class ResidualBlock(nn.Module):
         h = self.norm2(h)
         h = self.swish2(h)
         # TODO
-        # Dropout here
+        h = self.dropout(h)
         h = self.conv2(h)
 
         h = h + self.shortcut(x)
