@@ -39,7 +39,7 @@ def denoise(model, noisy_images, timesteps, device, num_timesteps=1000):
         timestep = torch.tensor([t] * noisy_images.size(0), device=device)
 
         # Denoise the image at this timestep
-        denoised_images = model(denoised_images, timestep)
+        denoised_images = model(denoised_images, timesteps[t])
 
         # You can also add noise here depending on your specific reverse process setup
         # If your model does not include the noise schedule internally, you can add it here manually
@@ -50,7 +50,7 @@ def denoise(model, noisy_images, timesteps, device, num_timesteps=1000):
 
 batch_size = 1  # We want to generate one image
 img_channels = 3  # For RGB images
-height, width = 256, 256  # Example dimensions
+height, width = 32, 32  # Example dimensions
 
 # Example of running the denoising process
 x = torch.randn(batch_size, img_channels, height, width)  # Noisy input image
