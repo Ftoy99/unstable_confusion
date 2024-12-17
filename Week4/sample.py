@@ -41,8 +41,8 @@ def denoise(model, noisy_images, timesteps, batch_size, device):
         # Create a tensor of shape [batch_size] filled with the current timestep
         t_tensor = torch.full((batch_size,), t, device=device, dtype=torch.long)
 
-        # Generate model prediction (denoise step)
-        noise = model(noisy_images, t_tensor)
+        with torch.no_grad():
+            noise = model(noisy_images, t_tensor)
 
         # Convert tensor to PIL image and save
         pil_image = to_pil(noisy_images[0].cpu())  # Convert to PIL and move to CPU
