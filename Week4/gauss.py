@@ -46,8 +46,10 @@ class Gauss:
         Returns:
             Extracted and reshaped tensor.
         """
-        out = tensor.gather(-1, t).to(self.device)
-        return out.view(-1, *[1] * (len(shape) - 1))
+        # Ensure t is reshaped to match the required index dimensions
+        t = t.view(-1, 1)  # Make t 2D for gather
+        out = tensor.gather(0, t)  # Gather along the 0th dimension
+        return out.view(-1, *[1] * (len(shape) - 1)).to(self.device)
 
     def predict_start_from_noise(self, x_t, t, noise):
         """
