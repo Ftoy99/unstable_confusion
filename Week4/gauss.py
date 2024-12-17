@@ -85,7 +85,8 @@ class Gauss:
         noise = torch.randn_like(x_t)
 
         # Mask noise for t == 0 (no noise at the final step)
-        nonzero_mask = (t > 0).float().view(-1, 1, 1, 1)
+        t_tensor = torch.tensor([t], device=self.sqrt_alpha_cumprod.device, dtype=torch.long)  # Convert t to a tensor
+        nonzero_mask = (t_tensor > 0).float().view(-1, 1, 1, 1)  # Apply mask based on t_tensor
 
         # Compute x_t-1
         return model_mean + nonzero_mask * torch.sqrt(posterior_variance) * noise
