@@ -53,10 +53,8 @@ class Gauss:
             Predicted starting image x_0.
         """
         x_t_shape = x_t.shape
-        return (
-            self._extract(self.sqrt_recip_alpha_cumprod, t, x_t_shape) * x_t
-            - self._extract(self.sqrt_recipm1_alpha_cumprod, t, x_t_shape) * noise
-        )
+        start = self._extract(self.sqrt_recip_alpha_cumprod, t, x_t_shape) * x_t - self._extract(self.sqrt_recipm1_alpha_cumprod, t, x_t_shape) * noise
+        return start
 
     def p_mean_variance(self, x_start, x_t, t):
         x_t_shape = x_t.shape
