@@ -41,7 +41,7 @@ class Gauss:
         t = torch.tensor([t], device=tensor.device, dtype=torch.long)
         t = t.view(-1)  # Ensure t is a 1D tensor
         out = tensor.gather(0, t)  # Gather along the 0th dimension
-        return out.view(-1, *[1] * (len(shape) - 1))
+        return out.view(-1, *[1] * (len(shape) - 1)).to(self.device)
 
     def predict_start_from_noise(self, x_t, t, noise):
         """
