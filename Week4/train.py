@@ -116,13 +116,13 @@ def main():
         progress_bar = tqdm(dataloader, desc=f"Epoch {epoch + 1}/{n_epochs}", unit="batch")
         for batch in progress_bar:
             images, _ = batch  # ignore labels
-            view_img(images[0])
+            # view_img(images[0])
             # Timesteps (can vary depending on the application, e.g., diffusion timesteps)
             t = torch.randint(0, timesteps, (images.size(0),), device=device)
             t = t.to(device)
 
             noised_images, noise = gauss.q_sample(images, t)
-            view_img(gauss.p_sample(noised_images[0], t[0], noise[0]))
+            # view_img(gauss.p_sample(noised_images[0], t[0], noise[0]))
             noise.to(device)
 
             # Forward pass
