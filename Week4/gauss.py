@@ -71,15 +71,16 @@ class Gauss:
 
     def p_sample(self, x_t, t, noise_pred, clip_denoised=True):
         # Predict x_0 (denoised image) from the noise
+        print(x_t.device)
+        print(t.device)
+        print(noise_pred.device)
         x_start = self.predict_start_from_noise(x_t, t, noise_pred)
 
         if clip_denoised:
             x_start = torch.clamp(x_start, -1.0, 1.0)
 
         # Compute the posterior mean and variance
-        print(x_start.device)
-        print(x_t.device)
-        print(t.device)
+
         model_mean, posterior_variance = self.p_mean_variance(x_start, x_t, t)
 
         # Sample noise
