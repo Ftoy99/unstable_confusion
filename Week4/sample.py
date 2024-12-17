@@ -8,15 +8,6 @@ from UNet import UNet
 
 
 def load_checkpoint(path, model, optimizer=None):
-    """
-    Load the model and optimizer states from a checkpoint.
-    Args:
-        path: Path to the checkpoint.
-        model: PyTorch model to load into.
-        optimizer: (Optional) PyTorch optimizer to load into.
-    Returns:
-        The epoch at which training was saved.
-    """
     if not os.path.exists(path):
         print(f"Checkpoint file '{path}' does not exist. Skipping load.")
         return
@@ -29,32 +20,24 @@ def load_checkpoint(path, model, optimizer=None):
     return epoch
 
 
-def denoise(model, noisy_images, timesteps, device, num_timesteps=1000):
+def denoise(model, noisy_images, timesteps):
     # Initialize the noisy image as the starting point for denoising
-    denoised_images = noisy_images
-
     # Iterate through the timesteps in reverse (from T-1 to 0)
-    for t in reversed(range(num_timesteps)):
-        # Generate the timestep tensor for this specific timestep
-        timestep = torch.tensor([t] * noisy_images.size(0), device=device)
-
-        # Denoise the image at this timestep
-        denoised_images = model(denoised_images, timesteps[t])
-
-        # You can also add noise here depending on your specific reverse process setup
-        # If your model does not include the noise schedule internally, you can add it here manually
-        # Example: denoised_images = denoised_images + noise_at_timestep
-
-    return denoised_images
+    for t in reversed(range(timesteps)):
+        # Create a tensor of shape [batch_size] filled with the current timestep
+        t_tensor = torch.full((batch_size,), t, device=device, dtype=torch.long)
+        noise = model(noisy_images, t_tensor)
+        print(f"Step {t}")
+        noisy_images = noisy_images-noise
+    return noisy_images
 
 
 batch_size = 1  # We want to generate one image
 img_channels = 3  # For RGB images
 height, width = 32, 32  # Example dimensions
-
+timesteps = 1000
 # Example of running the denoising process
 x = torch.randn(batch_size, img_channels, height, width)  # Noisy input image
-t = torch.randint(0, 1000, (batch_size,))  # Random timesteps (just for the example)
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Load the UNet model
@@ -65,7 +48,7 @@ optimizer = optim.Adam(unet.parameters(), lr=1e-4)
 load_checkpoint("unet.pth", unet, optimizer)
 
 # Denoising over 1000 timesteps
-output = denoise(unet, x.to(device), t.to(device), device)
+output = denoise(unet, x.to(device), 1000)
 
 # Convert the output tensor to a valid image for visualization
 output_image = output.squeeze(0).detach().cpu().numpy()  # Remove batch dimension
