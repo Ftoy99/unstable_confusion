@@ -157,3 +157,4 @@ cython_debug/
 Global/JetBrains.gitignore
 **.gz
 **ubyte
+/Week4/results/
