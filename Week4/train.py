@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from UNet import UNet
+from EMA import EMA
 from gauss import Gauss
 
 
@@ -101,7 +102,8 @@ def main():
     model = UNet().to(device)
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
     criterion = nn.MSELoss()
-
+    # Initialize EMA
+    ema = EMA(model, beta=0.999)
     # Training loop
     n_epochs = 20
     timesteps = 1000  # Standard deviation of added noise
@@ -137,9 +139,15 @@ def main():
             loss.backward()
             optimizer.step()
 
+            # Update EMA weights
+            ema.update()
+
             progress_bar.set_postfix(loss=loss.item())
         save_checkpoint(model, optimizer, epoch + 1, path=f"unet.pth")
         print(f"Epoch {epoch + 1}, Loss: {epoch_loss / len(dataloader)}")
+
+        # Optionally, apply EMA at the end of each epoch for better stability
+        ema.apply()
 
 
 if __name__ == '__main__':
