@@ -54,9 +54,9 @@ class UpSample(nn.Module):
 
 class DownBlock(nn.Module):
 
-    def __init__(self, in_channels, out_channels, time_channels, has_attn):
+    def __init__(self, in_channels, out_channels, time_channels, has_attn, norm_group):
         super(DownBlock, self).__init__()
-        self.res = ResidualBlock(in_channels, out_channels, time_channels)
+        self.res = ResidualBlock(in_channels, out_channels, time_channels, norm_group)
         if has_attn:
             self.attn = AttentionBlock(out_channels)
         else:
@@ -70,10 +70,10 @@ class DownBlock(nn.Module):
 
 class MiddleBlock(nn.Module):
 
-    def __init__(self, n_channels, time_channels):
+    def __init__(self, n_channels, time_channels, norm_group):
         super(MiddleBlock, self).__init__()
-        self.res1 = ResidualBlock(n_channels, n_channels, time_channels)
-        self.res2 = ResidualBlock(n_channels, n_channels, time_channels)
+        self.res1 = ResidualBlock(n_channels, n_channels, time_channels, norm_group)
+        self.res2 = ResidualBlock(n_channels, n_channels, time_channels, norm_group)
 
     def forward(self, x, t):
         x = self.res1(x, t)
@@ -130,7 +130,6 @@ class ResidualBlock(nn.Module):
 
         h = self.norm2(h)
         h = self.swish2(h)
-        # TODO
         h = self.dropout(h)
         h = self.conv2(h)
 
@@ -169,7 +168,7 @@ class AttentionBlock(nn.Module):
 class UNet(nn.Module):
 
     def __init__(self, image_channels: int = 3, n_channels: int = 64, ch_mults=(1, 2, 2, 4),
-                 is_attn=(False, False, True, True)):
+                 is_attn=(False, False, True, True), norm_group=8,num_res_blocks=2):
         super(UNet, self).__init__()
         self.n_channels = n_channels
         self.time_emb = TimestepEmbedding(n_channels * 4)
@@ -185,25 +184,38 @@ class UNet(nn.Module):
         # Down blocks
         for i in range(n_resolutions):
             out_channels = in_channels * ch_mults[i]
-            down_block = DownBlock(in_channels, out_channels, time_channels=n_channels * 4, has_attn=is_attn[i])
-            self.down.append(down_block)
-            in_channels = out_channels
+            for _ in range(num_res_blocks):
+                print(f"DownBlock {in_channels}->{out_channels}")
+                down_block = DownBlock(in_channels, out_channels, time_channels=n_channels * 4, has_attn=is_attn[i],
+                                       norm_group=norm_group)
+                self.down.append(down_block)
+                in_channels = out_channels
             if i < n_resolutions - 1:
+                print(f"DownSample {out_channels}->{out_channels}")
                 down_sample = DownSample(out_channels)
                 self.down.append(down_sample)
+                in_channels = out_channels
 
-        self.middle = MiddleBlock(out_channels, n_channels * 4)
+        self.middle = MiddleBlock(out_channels, n_channels * 4, norm_group)
 
         # Up Blocks
         in_channels = out_channels
         for i in reversed(range(n_resolutions)):
-            up_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4, has_attn=is_attn[i])
-            self.up.append(up_block)
+            # print(f"UpBlock {in_channels}->{out_channels}")
+            # up_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4, has_attn=is_attn[i])
+            # self.up.append(up_block)
+            # out_channels = in_channels // ch_mults[i]
+            for _ in range(num_res_blocks):
+                print(f"UpBlock {in_channels}->{out_channels}")
+                up_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4, has_attn=is_attn[i])
+                self.up.append(up_block)
             out_channels = in_channels // ch_mults[i]
+            print(f"UpBlock {in_channels}->{out_channels}")
             up_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4, has_attn=is_attn[i])
             self.up.append(up_block)
             in_channels = out_channels
             if i > 0:
+                print(f"UpSample {in_channels}->{in_channels}")
                 up_sample = UpSample(in_channels)
                 self.up.append(up_sample)
 
