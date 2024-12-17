@@ -3,12 +3,26 @@ import os
 import torch
 import torch.optim as optim
 import torch.nn as nn
+from matplotlib import pyplot as plt
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from UNet import UNet
 from gauss import Gauss
+
+
+def view_img(img_tensor):
+    # Convert the output tensor to a valid image for visualization
+    output_image = img_tensor.squeeze(0).detach().cpu().numpy()  # Remove batch dimension
+    output_image = (output_image - output_image.min()) / (
+            output_image.max() - output_image.min())  # Normalize to [0, 1]
+    output_image = output_image.transpose(1, 2, 0)  # Convert to HxWxC format for visualization
+
+    # Plot the denoised image
+    plt.imshow(output_image)
+    plt.axis('off')
+    plt.show()
 
 
 def load_checkpoint(path, model, optimizer=None):
@@ -94,7 +108,7 @@ def main():
     start_epoch = load_checkpoint("unet.pth", model, optimizer)
 
     # Noise
-    gauss = Gauss(T=1000, beta_start=0.0001, beta_end=0.02,device=device)
+    gauss = Gauss(T=1000, beta_start=0.0001, beta_end=0.02, device=device)
 
     for epoch in range(n_epochs):
         model.train()
@@ -102,12 +116,13 @@ def main():
         progress_bar = tqdm(dataloader, desc=f"Epoch {epoch + 1}/{n_epochs}", unit="batch")
         for batch in progress_bar:
             images, _ = batch  # ignore labels
-
+            view_img(images[0])
             # Timesteps (can vary depending on the application, e.g., diffusion timesteps)
             t = torch.randint(0, timesteps, (images.size(0),), device=device)
             t = t.to(device)
 
             noised_images, noise = gauss.q_sample(images, t)
+            view_img(gauss.p_sample(noised_images[0], t[0], noise[0]))
             noise.to(device)
 
             # Forward pass

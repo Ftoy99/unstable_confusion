@@ -28,8 +28,8 @@ class Gauss:
     def q_sample(self, x_0, t):
         noise = torch.randn_like(x_0)
 
-        x_0 = x_0.to(self.sqrt_alpha_cumprod.device)
-        noise = noise.to(self.sqrt_alpha_cumprod.device)
+        x_0 = x_0.to(self.device)
+        noise = noise.to(self.device)
 
         # Gather precomputed values for the given timesteps
         sqrt_alpha_cumprod_t = self.sqrt_alpha_cumprod[t].view(-1, 1, 1, 1)
