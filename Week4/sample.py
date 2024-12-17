@@ -36,7 +36,7 @@ def denoise(model, noisy_images, timesteps, batch_size, device):
     to_pil = transforms.ToPILImage()
 
     # Iterate through the timesteps in reverse (from T-1 to 0)
-    progress_bar = tqdm(reversed(range(timesteps)), desc=f"Inference", unit="batch")
+    progress_bar = tqdm(reversed(range(timesteps)), desc=f"Inference ", unit="step")
     for t in progress_bar:
         # Create a tensor of shape [batch_size] filled with the current timestep
         t_tensor = torch.full((batch_size,), t, device=device, dtype=torch.long)
