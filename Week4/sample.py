@@ -44,14 +44,13 @@ def denoise(model, noisy_images, timesteps, batch_size, device):
         with torch.no_grad():
             noise = model(noisy_images, t_tensor)
 
+        # Perform the denoising step (reverse diffusion)
+        noisy_images = gauss.p_sample(noisy_images, t, noise, True)
+
         # Convert tensor to PIL image and save
         pil_image = to_pil(noisy_images[0].cpu())  # Convert to PIL and move to CPU
         img_filename = f"{save_dir}/img_{t}_{current_time}.png"
         pil_image.save(img_filename)
-
-        # Perform the denoising step (reverse diffusion)
-        noisy_images = gauss.p_sample(noisy_images, t, noise, True)
-
     # Return the denoised image
     return noisy_images
 
