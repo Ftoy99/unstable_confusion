@@ -58,7 +58,7 @@ class DownBlock(nn.Module):
         super(DownBlock, self).__init__()
         self.res = ResidualBlock(in_channels, out_channels, time_channels, norm_group)
         if has_attn:
-            self.attn = AttentionBlock(out_channels)
+            self.attn = AttentionBlock(out_channels,n_groups=8)
         else:
             self.attn = nn.Identity()
 
@@ -87,7 +87,7 @@ class UpBlock(nn.Module):
         super(UpBlock, self).__init__()
         self.res = ResidualBlock(in_channels + out_channels, out_channels, time_channels)
         if has_attn:
-            self.attn = AttentionBlock(out_channels)
+            self.attn = AttentionBlock(out_channels,n_groups=8)
         else:
             self.attn = nn.Identity()
 
