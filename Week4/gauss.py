@@ -32,3 +32,66 @@ class Gauss:
         sqrt_one_minus_alpha_cumprod_t = self.sqrt_one_minus_alpha_cumprod[t].view(-1, 1, 1, 1)
         # Compute the noisy sample
         return sqrt_alpha_cumprod_t * x_0 + sqrt_one_minus_alpha_cumprod_t * noise, noise
+
+    def _extract(self, tensor, t, shape):
+        """
+        Extract values from a tensor at specific timesteps and reshape them.
+
+        Args:
+            tensor: Tensor of values (e.g., precomputed schedule values).
+            t: Timesteps to extract values for.
+            shape: Desired shape for the extracted values.
+        Returns:
+            Extracted and reshaped tensor.
+        """
+        out = tensor.gather(-1, t).to(self.device)
+        return out.view(-1, *[1] * (len(shape) - 1))
+
+    def predict_start_from_noise(self, x_t, t, noise):
+        """
+        Predict the starting image (x_0) from noisy image x_t and predicted noise.
+
+        Args:
+            x_t: Noisy image at timestep t.
+            t: Current timestep tensor.
+            noise: Predicted noise at timestep t.
+        Returns:
+            Predicted starting image x_0.
+        """
+        x_t_shape = x_t.shape
+        return (
+            self._extract(self.sqrt_recip_alpha_cumprod, t, x_t_shape) * x_t
+            - self._extract(self.sqrt_recipm1_alpha_cumprod, t, x_t_shape) * noise
+        )
+
+    def p_mean_variance(self, x_start, x_t, t):
+        x_t_shape = x_t.shape
+
+        # Posterior variance
+        posterior_variance = self._extract(self.beta, t, x_t_shape)
+
+        # Mean of the posterior
+        model_mean = (
+            self._extract(self.alpha, t, x_t_shape) * x_start
+            + self._extract(1 - self.alpha, t, x_t_shape) * x_t
+        )
+        return model_mean, posterior_variance
+
+    def p_sample(self, x_t, t, noise_pred, clip_denoised=True):
+        # Predict x_0 (denoised image) from the noise
+        x_start = self.predict_start_from_noise(x_t, t, noise_pred)
+
+        if clip_denoised:
+            x_start = torch.clamp(x_start, -1.0, 1.0)
+
+        # Compute the posterior mean and variance
+        model_mean, posterior_variance = self.p_mean_variance(x_start, x_t, t)
+
+        # Sample noise
+        noise = torch.randn_like(x_t)
+
+        # Mask noise for t == 0 (no noise at the final step)
+        nonzero_mask = (t > 0).float().view(-1, 1, 1, 1)
+
+        # Compute x_t-1
+        return model_mean + nonzero_mask * torch.sqrt(posterior_variance) * noise
