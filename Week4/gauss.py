@@ -77,8 +77,6 @@ class Gauss:
 
     def p_sample(self, x_t, t, noise_pred, clip_denoised=True):
         # Predict x_0 (denoised image) from the noise
-        print(x_t.device)
-        print(noise_pred.device)
         x_start = self.predict_start_from_noise(x_t, t, noise_pred)
 
         if clip_denoised:
