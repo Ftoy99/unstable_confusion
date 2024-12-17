@@ -20,6 +20,8 @@ class Gauss:
         self.alphas_cumprod = torch.cumprod(self.alpha, dim=0)  # \bar{\alpha}_t
         self.sqrt_alpha_cumprod = self.alphas_cumprod.sqrt().to(device=device)  # \sqrt{\bar{\alpha}_t}
         self.sqrt_one_minus_alpha_cumprod = (1 - self.alphas_cumprod).sqrt().to(device=device)  # \sqrt{1 - \bar{\alpha}_t}
+        self.sqrt_recip_alpha_cumprod = torch.sqrt(1 / self.alphas_cumprod)
+        self.sqrt_recipm1_alpha_cumprod = torch.sqrt(1 / self.alphas_cumprod - 1)
 
     def q_sample(self, x_0, t):
         noise = torch.randn_like(x_0)
