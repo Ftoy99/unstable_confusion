@@ -91,6 +91,7 @@ def main():
     # Transform for dataset
     transform = transforms.Compose([
         transforms.ToTensor(),
+        transforms.RandomHorizontalFlip(),
         transforms.Normalize((0.5,), (0.5,))  # Normalize to [-1, 1] range
     ])
 
