@@ -55,6 +55,8 @@ class Gauss:
         """
         x_t_shape = x_t.shape
         ex1 = self._extract(self.sqrt_recip_alpha_cumprod, t, x_t_shape)
+        print(ex1.device)
+        print(x_t.device)
         ex1 = ex1 * x_t
         ex2 = self._extract(self.sqrt_recipm1_alpha_cumprod, t, x_t_shape)
         ex2 = ex2 * noise
