@@ -58,7 +58,7 @@ class DownBlock(nn.Module):
         super(DownBlock, self).__init__()
         self.res = ResidualBlock(in_channels, out_channels, time_channels, norm_group)
         if has_attn:
-            self.attn = AttentionBlock(out_channels,n_groups=8)
+            self.attn = AttentionBlock(out_channels, n_groups=8)
         else:
             self.attn = nn.Identity()
 
@@ -87,7 +87,7 @@ class UpBlock(nn.Module):
         super(UpBlock, self).__init__()
         self.res = ResidualBlock(in_channels + out_channels, out_channels, time_channels)
         if has_attn:
-            self.attn = AttentionBlock(out_channels,n_groups=8)
+            self.attn = AttentionBlock(out_channels, n_groups=8)
         else:
             self.attn = nn.Identity()
 
@@ -139,28 +139,41 @@ class ResidualBlock(nn.Module):
 
 
 class AttentionBlock(nn.Module):
-    def __init__(self, n_channels: int, n_heads: int = 1, d_k: int = None, n_groups: int = 32):
+    def __init__(self, n_channels: int, n_heads: int = 1, d_k: int = None, n_groups: int = 32, dropout: float = 0.1):
         super(AttentionBlock, self).__init__()
         if d_k is None:
             d_k = n_channels
         self.norm = nn.GroupNorm(n_groups, n_channels)
-        self.projection = nn.Linear(n_channels, n_heads * d_k * 3)
         self.output = nn.Linear(n_heads * d_k, n_channels)
+        self.dropout = nn.Dropout(dropout)
+        self.projection = nn.Linear(n_channels, n_heads * d_k * 3)
         self.scale = d_k ** -0.5
         self.n_heads = n_heads
         self.d_k = d_k
 
     def forward(self, x: torch.Tensor):
         batch_size, n_channels, height, width = x.shape
-        x = x.view(batch_size, n_channels, -1).permute(0, 2, 1)
+
+        # Normalize
+        x = self.norm(x)
+        x = x.view(batch_size, n_channels, -1).permute(0, 2, 1)  # [B, HW, C]
+
+        # Q, K, V projection
         qkv = self.projection(x).view(batch_size, -1, self.n_heads, 3 * self.d_k)
-        q, k, v = torch.chunk(qkv, 3, dim=-1)
+        q, k, v = torch.chunk(qkv, 3, dim=-1)  # Split into Q, K, V
+
+        # Scaled Dot-Product Attention
         attn = torch.einsum('bihd,bjhd->bijh', q, k) * self.scale
         attn = attn.softmax(dim=2)
         res = torch.einsum('bijh,bjhd->bihd', attn, v)
+
+        # Reshape and output projection
         res = res.view(batch_size, -1, self.n_heads * self.d_k)
         res = self.output(res)
-        res += x
+        res = self.dropout(res)
+        res += x  # Residual connection
+
+        # Reshape back to [B, C, H, W]
         res = res.permute(0, 2, 1).view(batch_size, n_channels, height, width)
         return res
 
@@ -168,7 +181,7 @@ class AttentionBlock(nn.Module):
 class UNet(nn.Module):
 
     def __init__(self, image_channels: int = 3, n_channels: int = 64, ch_mults=(1, 2, 2, 4),
-                 is_attn=(False, False, True, True), norm_group=8,num_res_blocks=2):
+                 is_attn=(False, False, True, True), norm_group=8, num_res_blocks=2):
         super(UNet, self).__init__()
         self.n_channels = n_channels
         self.time_emb = TimestepEmbedding(n_channels * 4)
