@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 from torch import optim
 
 from UNet import UNet
+from gauss import Gauss
 
 
 def load_checkpoint(path, model, optimizer=None):
@@ -21,6 +22,7 @@ def load_checkpoint(path, model, optimizer=None):
 
 
 def denoise(model, noisy_images, timesteps):
+    gauss = Gauss(T=1000, beta_start=0.0001, beta_end=0.02, device=device)
     # Initialize the noisy image as the starting point for denoising
     # Iterate through the timesteps in reverse (from T-1 to 0)
     for t in reversed(range(timesteps)):
@@ -28,7 +30,7 @@ def denoise(model, noisy_images, timesteps):
         t_tensor = torch.full((batch_size,), t, device=device, dtype=torch.long)
         noise = model(noisy_images, t_tensor)
         print(f"Step {t}")
-        noisy_images = noisy_images-noise
+        noisy_images = gauss.p_sample(noisy_images, t, noise, True)
     return noisy_images
 
 
