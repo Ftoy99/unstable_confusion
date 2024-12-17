@@ -12,6 +12,7 @@ class Gauss:
             beta_start (float): Starting value for beta (used in linear schedule).
             beta_end (float): Ending value for beta (used in linear schedule).
         """
+        self.device = device
         self.T = T
         self.beta = torch.linspace(beta_start, beta_end, T)
 
@@ -54,11 +55,9 @@ class Gauss:
             Predicted starting image x_0.
         """
         x_t_shape = x_t.shape
-        ex1 = self._extract(self.sqrt_recip_alpha_cumprod, t, x_t_shape)
-        print(ex1.device)
-        print(x_t.device)
+        ex1 = self._extract(self.sqrt_recip_alpha_cumprod, t, x_t_shape).to(self.device)
         ex1 = ex1 * x_t
-        ex2 = self._extract(self.sqrt_recipm1_alpha_cumprod, t, x_t_shape)
+        ex2 = self._extract(self.sqrt_recipm1_alpha_cumprod, t, x_t_shape).to(self.device)
         ex2 = ex2 * noise
         start = ex1 - ex2
         return start
