@@ -5,6 +5,7 @@ import torch
 from matplotlib import pyplot as plt
 from torch import optim
 from torchvision.transforms import transforms
+from tqdm import tqdm
 
 from UNet import UNet
 from gauss import Gauss
@@ -35,7 +36,8 @@ def denoise(model, noisy_images, timesteps, batch_size, device):
     to_pil = transforms.ToPILImage()
 
     # Iterate through the timesteps in reverse (from T-1 to 0)
-    for t in reversed(range(timesteps)):
+    progress_bar = tqdm(reversed(range(timesteps)), desc=f"Inference", unit="batch")
+    for t in progress_bar:
         # Create a tensor of shape [batch_size] filled with the current timestep
         t_tensor = torch.full((batch_size,), t, device=device, dtype=torch.long)
 
@@ -47,7 +49,6 @@ def denoise(model, noisy_images, timesteps, batch_size, device):
         pil_image = to_pil(noisy_images[0].cpu())  # Convert to PIL and move to CPU
         img_filename = f"{save_dir}/img_{t}_{current_time}.png"
         pil_image.save(img_filename)
-        print(f"Saved image at timestep {t} to {img_filename}")
 
         # Perform the denoising step (reverse diffusion)
         noisy_images = gauss.p_sample(noisy_images, t, noise, True)
