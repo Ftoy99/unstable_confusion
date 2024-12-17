@@ -43,7 +43,6 @@ def denoise(model, noisy_images, timesteps, batch_size, device):
 
         # Generate model prediction (denoise step)
         noise = model(noisy_images, t_tensor)
-        print(f"Step {t}")
 
         # Convert tensor to PIL image and save
         pil_image = to_pil(noisy_images[0].cpu())  # Convert to PIL and move to CPU
