@@ -66,6 +66,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Load the UNet model
 unet = UNet().to(device)
+unet.eval()
 optimizer = optim.Adam(unet.parameters(), lr=1e-4)
 
 # Load the checkpoint
