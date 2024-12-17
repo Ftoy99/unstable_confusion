@@ -36,21 +36,10 @@ class Gauss:
         return sqrt_alpha_cumprod_t * x_0 + sqrt_one_minus_alpha_cumprod_t * noise, noise
 
     def _extract(self, tensor, t, shape):
-        """
-        Extract values from a tensor at specific timesteps and reshape them.
-
-        Args:
-            tensor: Tensor of values (e.g., precomputed schedule values).
-            t: Timesteps to extract values for.
-            shape: Desired shape for the extracted values.
-        Returns:
-            Extracted and reshaped tensor.
-        """
-        # Ensure t is reshaped to match the required index dimensions
         t = torch.tensor([t], device=tensor.device, dtype=torch.long)
-        t = t.view(-1, 1)  # Make t 2D for gather
+        t = t.view(-1)  # Ensure t is a 1D tensor
         out = tensor.gather(0, t)  # Gather along the 0th dimension
-        return out.view(-1, *[1] * (len(shape) - 1)).to(self.device)
+        return out.view(-1, *[1] * (len(shape) - 1))
 
     def predict_start_from_noise(self, x_t, t, noise):
         """
