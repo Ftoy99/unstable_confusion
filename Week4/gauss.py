@@ -19,7 +19,8 @@ class Gauss:
         self.alpha = 1 - self.beta
         self.alphas_cumprod = torch.cumprod(self.alpha, dim=0)  # \bar{\alpha}_t
         self.sqrt_alpha_cumprod = self.alphas_cumprod.sqrt().to(device=device)  # \sqrt{\bar{\alpha}_t}
-        self.sqrt_one_minus_alpha_cumprod = (1 - self.alphas_cumprod).sqrt().to(device=device)  # \sqrt{1 - \bar{\alpha}_t}
+        self.sqrt_one_minus_alpha_cumprod = (1 - self.alphas_cumprod).sqrt().to(
+            device=device)  # \sqrt{1 - \bar{\alpha}_t}
         self.sqrt_recip_alpha_cumprod = torch.sqrt(1 / self.alphas_cumprod)
         self.sqrt_recipm1_alpha_cumprod = torch.sqrt(1 / self.alphas_cumprod - 1)
 
@@ -53,7 +54,11 @@ class Gauss:
             Predicted starting image x_0.
         """
         x_t_shape = x_t.shape
-        start = self._extract(self.sqrt_recip_alpha_cumprod, t, x_t_shape) * x_t - self._extract(self.sqrt_recipm1_alpha_cumprod, t, x_t_shape) * noise
+        ex1 = self._extract(self.sqrt_recip_alpha_cumprod, t, x_t_shape)
+        ex1 = ex1 * x_t
+        ex2 = self._extract(self.sqrt_recipm1_alpha_cumprod, t, x_t_shape)
+        ex2 = ex2 * noise
+        start = ex1 - ex2
         return start
 
     def p_mean_variance(self, x_start, x_t, t):
@@ -64,8 +69,8 @@ class Gauss:
 
         # Mean of the posterior
         model_mean = (
-            self._extract(self.alpha, t, x_t_shape) * x_start
-            + self._extract(1 - self.alpha, t, x_t_shape) * x_t
+                self._extract(self.alpha, t, x_t_shape) * x_start
+                + self._extract(1 - self.alpha, t, x_t_shape) * x_t
         )
         return model_mean, posterior_variance
 
