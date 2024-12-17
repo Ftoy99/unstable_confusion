@@ -96,7 +96,7 @@ def main():
 
     # Load dataset (e.g., CIFAR-10)
     dataset = datasets.CIFAR10(root="./data", train=True, download=True, transform=transform)
-    dataloader = DataLoader(dataset, batch_size=100, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=50, shuffle=True)
 
     # Model , optimize , loss
     model = UNet().to(device)
