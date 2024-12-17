@@ -47,6 +47,7 @@ class Gauss:
             Extracted and reshaped tensor.
         """
         # Ensure t is reshaped to match the required index dimensions
+        t = torch.tensor([t], device=tensor.device, dtype=torch.long)
         t = t.view(-1, 1)  # Make t 2D for gather
         out = tensor.gather(0, t)  # Gather along the 0th dimension
         return out.view(-1, *[1] * (len(shape) - 1)).to(self.device)
