@@ -207,10 +207,6 @@ class UNet(nn.Module):
         # Up Blocks
         in_channels = out_channels
         for i in reversed(range(n_resolutions)):
-            # print(f"UpBlock {in_channels}->{out_channels}")
-            # up_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4, has_attn=is_attn[i])
-            # self.up.append(up_block)
-            # out_channels = in_channels // ch_mults[i]
             for _ in range(num_res_blocks):
                 print(f"UpBlock {in_channels}->{out_channels}")
                 up_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4, has_attn=is_attn[i])

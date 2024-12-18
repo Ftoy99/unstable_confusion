@@ -69,7 +69,7 @@ def main():
     ae = AutoencoderKL.from_single_file(url)
 
     # Model , optimize , loss
-    model = UNet(image_channels=8).to(device)
+    model = UNet(image_channels=8, norm_group=1).to(device)
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
     criterion = nn.MSELoss()
 
@@ -94,9 +94,13 @@ def main():
             t = torch.randint(0, timesteps, (images.size(0),), device=device)
             t = t.to(device)
 
-            encoded_images = ae.encoder(images)
+            encoded_images = ae.encode(images)
+            encoded_images = encoded_images["latent_dist"].mean
+            # ae.decode(encoded_images["latent_dist"].mean)["sample"] wth
             # encoded_images.shape = 2,8,4,4 ? B,C,H,W ?
             noised_images, noise = gauss.q_sample(encoded_images, t)
+
+            view_img(ae.decoder(noised_images)[0])
             # view_img(gauss.p_sample(noised_images[0], t[0], noise[0]))
             noise.to(device)
 

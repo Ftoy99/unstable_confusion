@@ -205,17 +205,21 @@ class UNet(nn.Module):
         self.middle = MiddleBlock(out_channels, n_channels * 4, norm_group)
 
         # Up Blocks
+        in_channels = out_channels
         for i in reversed(range(n_resolutions)):
             for _ in range(num_res_blocks):
-                print(f"UpBlock {out_channels}->{in_channels}")
-                up_block = UpBlock(out_channels, in_channels, time_channels=n_channels * 4, has_attn=is_attn[i])
+                print(f"UpBlock {in_channels}->{out_channels}")
+                up_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4, has_attn=is_attn[i])
                 self.up.append(up_block)
-            if i > 0:  # Add UpSample between resolutions
+            out_channels = in_channels // ch_mults[i]
+            print(f"UpBlock {in_channels}->{out_channels}")
+            up_block = UpBlock(in_channels, out_channels, time_channels=n_channels * 4, has_attn=is_attn[i])
+            self.up.append(up_block)
+            in_channels = out_channels
+            if i > 0:
                 print(f"UpSample {in_channels}->{in_channels}")
                 up_sample = UpSample(in_channels)
                 self.up.append(up_sample)
-            out_channels = in_channels
-            in_channels = in_channels // ch_mults[i]  # Reverse the channel multiplier
 
         self.norm = nn.GroupNorm(8, n_channels)
         self.act = Swish()
@@ -223,7 +227,7 @@ class UNet(nn.Module):
 
     def forward(self, x: Tensor, t: Tensor):
         B, C, H, W = x.shape
-        print("Forwardd")
+
         t = self.time_emb(t)  # create embedding for timesteps
 
         x = self.image_proj(x)  # project the image to higher channels
@@ -234,7 +238,6 @@ class UNet(nn.Module):
         # Down Blocks
         for i, block in enumerate(self.down):
             x = block(x, t)
-            print(f"Down {i} | x.shape: {x.shape}")
             skip.append(x)
 
         x = self.middle(x, t)
@@ -242,12 +245,9 @@ class UNet(nn.Module):
         # Up Blocks
         for i, block in enumerate(self.up):
             if isinstance(block, UpSample):
-                print(f"UpSample {i} |input x.shape: {x.shape}")
                 x = block(x, t)
-                print(f"UpSample {i} |output x.shape: {x.shape}")
             else:
                 s = skip.pop()
-                print(f"Skip {i} | s.shape: {s.shape}, x.shape: {x.shape}")
                 x = torch.cat((x, s), dim=1)
                 x = block(x, t)
 
