@@ -108,7 +108,7 @@ def main():
     # Training loop
     n_epochs = 20
     timesteps = 1000  # Standard deviation of added noise
-    start_epoch = load_checkpoint("unet.pth", model, optimizer)
+    start_epoch = load_checkpoint("unetMHSA.pth", model, optimizer)
 
     # Noise
     gauss = Gauss(T=1000, beta_start=0.0001, beta_end=0.02, device=device)
