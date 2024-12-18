@@ -75,7 +75,7 @@ load_checkpoint("unetLMHSA.pth", unet, optimizer)
 
 url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
 ae = AutoencoderKL.from_single_file(url)
-
+ae.to(device)
 # Denoising over 1000 timesteps
 output = denoise(unet, x.to(device), 1000, 1, device)
 
