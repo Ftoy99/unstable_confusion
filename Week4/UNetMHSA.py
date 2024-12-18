@@ -160,7 +160,7 @@ class AttentionBlock(nn.Module):
 
         # Multihead Self-Attention
         attn_output, _ = self.attn(x, x, x)  # Q = K = V
-        attn_output = self.dropout(attn_output) # can move this bellow
+        attn_output = self.dropout(attn_output)  # can move this bellow
 
         # Reshape back to [B, C, H, W]
         attn_output = attn_output.permute(0, 2, 1).view(batch_size, n_channels, height, width)
