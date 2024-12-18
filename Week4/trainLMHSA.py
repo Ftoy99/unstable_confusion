@@ -66,7 +66,7 @@ def main():
     dataloader = DataLoader(dataset, batch_size=500, shuffle=True)
 
     url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
-    ae = AutoencoderKL.from_single_file(url)
+    ae = AutoencoderKL.from_single_file(url).to(device)
 
     # Model , optimize , loss
     model = UNet(image_channels=4, norm_group=2).to(device)
