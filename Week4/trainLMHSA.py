@@ -63,7 +63,7 @@ def main():
 
     # Load dataset (e.g., CIFAR-10)
     dataset = datasets.CIFAR10(root="./data", train=True, download=True, transform=transform)
-    dataloader = DataLoader(dataset, batch_size=100, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=500, shuffle=True)
 
     url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
     ae = AutoencoderKL.from_single_file(url)
