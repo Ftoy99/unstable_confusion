@@ -96,6 +96,7 @@ def main():
 
             encoded_images = ae.encode(images)
             encoded_images = encoded_images["latent_dist"].mean
+            encoded_images = encoded_images * ae.config.scaling_factor
             # ae.decode(encoded_images["latent_dist"].mean)["sample"] wth
             # encoded_images.shape = 2,8,4,4 ? B,C,H,W ?
             noised_images, noise = gauss.q_sample(encoded_images, t)
@@ -119,10 +120,11 @@ def main():
             ema.update()
 
             progress_bar.set_postfix(loss=loss.item())
+        ema.apply()
         save_checkpoint(model, optimizer, epoch + 1, path=f"unetLMHSA.pth")
         print(f"Epoch {epoch + 1}, Loss: {epoch_loss / len(dataloader)}")
 
-        ema.apply()
+
 
 
 if __name__ == '__main__':
