@@ -63,7 +63,7 @@ def main():
 
     # Load dataset (e.g., CIFAR-10)
     dataset = datasets.CIFAR10(root="./data", train=True, download=True, transform=transform)
-    dataloader = DataLoader(dataset, batch_size=2, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=50, shuffle=True)
 
     url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
     ae = AutoencoderKL.from_single_file(url)
@@ -103,7 +103,6 @@ def main():
             # view_img(ae.decoder(noised_images)[0])
             # view_img(gauss.p_sample(noised_images[0], t[0], noise[0]))
             noise.to(device)
-            print(noised_images.shape)
             # Forward pass
             predicted_noise = model(noised_images, t)
 
