@@ -69,7 +69,7 @@ def main():
     ae = AutoencoderKL.from_single_file(url)
 
     # Model , optimize , loss
-    model = UNet(image_channels=8, norm_group=1).to(device)
+    model = UNet(image_channels=4, norm_group=2).to(device)
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
     criterion = nn.MSELoss()
 
@@ -100,10 +100,10 @@ def main():
             # encoded_images.shape = 2,8,4,4 ? B,C,H,W ?
             noised_images, noise = gauss.q_sample(encoded_images, t)
 
-            view_img(ae.decoder(noised_images)[0])
+            # view_img(ae.decoder(noised_images)[0])
             # view_img(gauss.p_sample(noised_images[0], t[0], noise[0]))
             noise.to(device)
-
+            print(noised_images.shape)
             # Forward pass
             predicted_noise = model(noised_images, t)
 

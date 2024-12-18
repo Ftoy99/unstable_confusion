@@ -173,7 +173,7 @@ class AttentionBlock(nn.Module):
 
 class UNet(nn.Module):
 
-    def __init__(self, image_channels: int = 3, n_channels: int = 64, ch_mults=(1, 2, 2, 4),
+    def __init__(self, image_channels: int = 4, n_channels: int = 64, ch_mults=(1, 2, 4),
                  is_attn=(False, False, True, True), norm_group=8, num_res_blocks=1):
         super(UNet, self).__init__()
         self.n_channels = n_channels
