@@ -89,6 +89,7 @@ def main():
         progress_bar = tqdm(dataloader, desc=f"Epoch {epoch + 1}/{n_epochs}", unit="batch")
         for batch in progress_bar:
             images, _ = batch  # ignore labels
+            images.to(device)
             # view_img(images[0])
             # Timesteps (can vary depending on the application, e.g., diffusion timesteps)
             t = torch.randint(0, timesteps, (images.size(0),), device=device)
