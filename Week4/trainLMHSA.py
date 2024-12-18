@@ -77,7 +77,7 @@ def main():
     ema = EMA(model, beta=0.999)
     # Training loop
     n_epochs = 1
-    timesteps = 1000  # Standard deviation of added noise
+    timesteps = 1000
     load_checkpoint("unetLMHSA.pth", model, optimizer)
 
     # Noise

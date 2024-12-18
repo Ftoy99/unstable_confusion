@@ -2,12 +2,14 @@ from datetime import datetime
 import os
 
 import torch
+from diffusers import AutoencoderKL
 from matplotlib import pyplot as plt
 from torch import optim
+import safetensors.torch
 from torchvision.transforms import transforms
 from tqdm import tqdm
 
-from UNetMHSA import UNet
+from UNetLMHSA import UNet
 from gauss import Gauss
 
 
@@ -56,26 +58,30 @@ def denoise(model, noisy_images, timesteps, batch_size, device):
 
 
 batch_size = 1  # We want to generate one image
-img_channels = 3  # For RGB images
-height, width = 32, 32  # Example dimensions
+img_channels = 4  # For RGB images
+height, width = 4, 4  # Example dimensions
 timesteps = 1000
 # Example of running the denoising process
 x = torch.randn(batch_size, img_channels, height, width)  # Noisy input image
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Load the UNet model
-unet = UNet().to(device)
+unet = UNet(image_channels=4, norm_group=2).to(device)
 unet.eval()
 optimizer = optim.Adam(unet.parameters(), lr=1e-4)
 
 # Load the checkpoint
-load_checkpoint("unetMHSA.pth", unet, optimizer)
+load_checkpoint("unetLMHSA.pth", unet, optimizer)
+
+url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
+ae = AutoencoderKL.from_single_file(url)
 
 # Denoising over 1000 timesteps
 output = denoise(unet, x.to(device), 1000, 1, device)
 
+
 # Convert the output tensor to a valid image for visualization
-output_image = output.squeeze(0).detach().cpu().numpy()  # Remove batch dimension
+output_image = ae.decode(output)["sample"].squeeze(0).detach().cpu().numpy()  # Remove batch dimension
 output_image = (output_image - output_image.min()) / (output_image.max() - output_image.min())  # Normalize to [0, 1]
 output_image = output_image.transpose(1, 2, 0)  # Convert to HxWxC format for visualization
 
