@@ -63,7 +63,7 @@ def main():
 
     # Load dataset (e.g., CIFAR-10)
     dataset = datasets.CIFAR10(root="./data", train=True, download=True, transform=transform)
-    dataloader = DataLoader(dataset, batch_size=500, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=100, shuffle=True)
 
     url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
     ae = AutoencoderKL.from_single_file(url).to(device)
@@ -76,7 +76,7 @@ def main():
     # Initialize EMA
     ema = EMA(model, beta=0.999)
     # Training loop
-    n_epochs = 1
+    n_epochs = 20
     timesteps = 1000
     load_checkpoint("unetLMHSA.pth", model, optimizer)
 
