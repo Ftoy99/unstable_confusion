@@ -139,7 +139,7 @@ class ResidualBlock(nn.Module):
 
 
 class AttentionBlock(nn.Module):
-    def __init__(self, n_channels: int, n_heads: int = 1, d_k: int = None, n_groups: int = 32, dropout: float = 0.1):
+    def __init__(self, n_channels: int, n_heads: int = 2, d_k: int = None, n_groups: int = 32, dropout: float = 0.1):
         super(AttentionBlock, self).__init__()
         if d_k is None:
             d_k = n_channels
