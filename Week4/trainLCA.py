@@ -28,12 +28,7 @@ def view_img(img_tensor):
     plt.show()
 
 
-# Load CLIP components
-tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-large-patch14")
-text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-large-patch14")
-
-
-def get_text_embeddings(texts):
+def get_text_embeddings(texts, tokenizer, text_encoder):
     inputs = tokenizer(texts, return_tensors="pt", padding=True, truncation=True)
     with torch.no_grad():
         embeddings = text_encoder(**inputs).last_hidden_state  # [batch_size, seq_len, embed_dim]
@@ -80,6 +75,10 @@ def main():
     url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-ft-mse-840000-ema-pruned.safetensors"  # can also be a local file
     ae = AutoencoderKL.from_single_file(url).to(device)
 
+    # Load CLIP components
+    tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-large-patch14")
+    text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-large-patch14").to(device)
+
     # Model , optimize , loss
     model = UNet(image_channels=4, norm_group=2).to(device)
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
@@ -113,7 +112,7 @@ def main():
             texts_list = texts.tolist()
             texts_list = [token_to_word[x] for x in texts_list]
 
-            text_emb = get_text_embeddings(texts_list)
+            text_emb = get_text_embeddings(texts_list, tokenizer, text_encoder).to(device)
 
             encoded_images = ae.encode(images)
             encoded_images = encoded_images["latent_dist"].mean
