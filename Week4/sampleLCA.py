@@ -15,7 +15,7 @@ from UNetLCA import UNet
 from gauss import Gauss
 
 
-def get_text_embeddings(texts):
+def get_text_embeddings(texts,device):
     # Load CLIP components
     tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-large-patch14")
     text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-large-patch14").to(device)
@@ -23,7 +23,7 @@ def get_text_embeddings(texts):
     inputs = tokenizer(texts, return_tensors="pt", padding=True, truncation=True).to(device)
     with torch.no_grad():
         embeddings = text_encoder(**inputs).last_hidden_state  # [batch_size, seq_len, embed_dim]
-    return embeddings
+    return embeddings.to(device)
 
 
 def load_checkpoint(path, model, optimizer=None):
@@ -93,7 +93,7 @@ ae.to(device)
 
 if len(sys.argv) == 2:
     context = [sys.argv[1]]
-    context = get_text_embeddings(context).to(device)
+    context = get_text_embeddings(context,device)
 else:
     context = None
 
