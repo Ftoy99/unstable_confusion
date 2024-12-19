@@ -15,7 +15,7 @@ from UNetLCA import UNet
 from gauss import Gauss
 
 
-def get_text_embeddings(texts,device):
+def get_text_embeddings(texts, device):
     # Load CLIP components
     tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-large-patch14")
     text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-large-patch14").to(device)
@@ -93,7 +93,7 @@ ae.to(device)
 
 if len(sys.argv) == 2:
     context = [sys.argv[1]]
-    context = get_text_embeddings(context,device)
+    context = get_text_embeddings(context, device)
 else:
     context = None
 

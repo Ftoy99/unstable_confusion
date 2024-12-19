@@ -81,7 +81,7 @@ def main():
 
     # Model , optimize , loss
     model = UNet(image_channels=4, norm_group=2).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=1e-4)
+    optimizer = optim.Adam(model.parameters(), lr=1e-4,eps=1e-8)
     criterion = nn.MSELoss()
 
     token_to_word = {v: k for k, v in dataset.class_to_idx.items()}
