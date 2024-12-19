@@ -18,7 +18,7 @@ from gauss import Gauss
 def get_text_embeddings(texts):
     # Load CLIP components
     tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-large-patch14")
-    text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-large-patch14")
+    text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-large-patch14").to(device)
     """Texts trained airplane automobile bird cat deer dog frog horse ship truck"""
     inputs = tokenizer(texts, return_tensors="pt", padding=True, truncation=True)
     with torch.no_grad():
@@ -93,15 +93,11 @@ ae.to(device)
 
 if len(sys.argv) == 2:
     context = [sys.argv[1]]
-    context = get_text_embeddings(context)
+    context = get_text_embeddings(context).to(device)
 else:
     context = None
 
 output = denoise(unet, x.to(device), 1000, 1, device, context)
-
-# Load CLIP components
-tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-large-patch14")
-text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-large-patch14")
 
 # Convert the output tensor to a valid image for visualization
 output_image = ae.decode(output)["sample"].squeeze(0).detach().cpu().numpy()  # Remove batch dimension
