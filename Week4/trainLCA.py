@@ -77,7 +77,7 @@ def main():
 
     # Load CLIP components
     tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-large-patch14")
-    text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-large-patch14").to(device)
+    text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-large-patch14")
 
     # Model , optimize , loss
     model = UNet(image_channels=4, norm_group=2).to(device)
