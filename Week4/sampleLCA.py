@@ -1,3 +1,4 @@
+import sys
 from datetime import datetime
 import os
 
@@ -8,9 +9,21 @@ from torch import optim
 import safetensors.torch
 from torchvision.transforms import transforms
 from tqdm import tqdm
+from transformers import CLIPTextModel, CLIPTokenizer
 
 from UNetLCA import UNet
 from gauss import Gauss
+
+
+def get_text_embeddings(texts):
+    # Load CLIP components
+    tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-large-patch14")
+    text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-large-patch14")
+    """Texts trained airplane automobile bird cat deer dog frog horse ship truck"""
+    inputs = tokenizer(texts, return_tensors="pt", padding=True, truncation=True)
+    with torch.no_grad():
+        embeddings = text_encoder(**inputs).last_hidden_state  # [batch_size, seq_len, embed_dim]
+    return embeddings
 
 
 def load_checkpoint(path, model, optimizer=None):
@@ -26,7 +39,7 @@ def load_checkpoint(path, model, optimizer=None):
     return epoch
 
 
-def denoise(model, noisy_images, timesteps, batch_size, device):
+def denoise(model, noisy_images, timesteps, batch_size, device, context):
     gauss = Gauss(T=1000, beta_start=0.0001, beta_end=0.02, device=device)
 
     # Create a directory with the current date and time
@@ -44,7 +57,7 @@ def denoise(model, noisy_images, timesteps, batch_size, device):
         t_tensor = torch.full((batch_size,), t, device=device, dtype=torch.long)
 
         with torch.no_grad():
-            noise = model(noisy_images, t_tensor)
+            noise = model(noisy_images, t_tensor, context)
 
         # Perform the denoising step (reverse diffusion)
         noisy_images = gauss.p_sample(noisy_images, t, noise, True)
@@ -77,8 +90,18 @@ url = "https://huggingface.co/stabilityai/sd-vae-ft-mse-original/blob/main/vae-f
 ae = AutoencoderKL.from_single_file(url)
 ae.to(device)
 # Denoising over 1000 timesteps
-output = denoise(unet, x.to(device), 1000, 1, device)
 
+if len(sys.argv) == 2:
+    context = [sys.argv[1]]
+    context = get_text_embeddings(context)
+else:
+    context = None
+
+output = denoise(unet, x.to(device), 1000, 1, device, context)
+
+# Load CLIP components
+tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-large-patch14")
+text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-large-patch14")
 
 # Convert the output tensor to a valid image for visualization
 output_image = ae.decode(output)["sample"].squeeze(0).detach().cpu().numpy()  # Remove batch dimension

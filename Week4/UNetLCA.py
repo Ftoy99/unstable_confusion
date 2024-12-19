@@ -153,8 +153,6 @@ class AttentionBlock(nn.Module):
     def forward(self, x: torch.Tensor, context):
         batch_size, n_channels, height, width = x.shape
 
-        context = self.context_proj(context)
-
         # Save
         residual = x
 
@@ -164,6 +162,8 @@ class AttentionBlock(nn.Module):
 
         if context is None:
             context = x
+        else:
+            context = self.context_proj(context)
 
         # Multihead Self-Attention
         attn_output, _ = self.attn(x, context, context)  # Q , K , V
