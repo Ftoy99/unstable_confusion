@@ -20,7 +20,7 @@ def get_text_embeddings(texts):
     tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-large-patch14")
     text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-large-patch14").to(device)
     """Texts trained airplane automobile bird cat deer dog frog horse ship truck"""
-    inputs = tokenizer(texts, return_tensors="pt", padding=True, truncation=True)
+    inputs = tokenizer(texts, return_tensors="pt", padding=True, truncation=True).to(device)
     with torch.no_grad():
         embeddings = text_encoder(**inputs).last_hidden_state  # [batch_size, seq_len, embed_dim]
     return embeddings
