@@ -24,4 +24,4 @@ os.makedirs(output_dir, exist_ok=True)
 # Save images with timestamped filenames
 for idx, image in enumerate(images):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    image.save(os.path.join(output_dir, f"squirrel-{timestamp}_{idx}.png"))
+    image.save(os.path.join(output_dir, f"{prompt.replace(" ", "")}-{timestamp}_{idx}.png"))
