@@ -28,8 +28,8 @@ def view_img(img_tensor):
     plt.show()
 
 
-def get_text_embeddings(texts, tokenizer, text_encoder):
-    inputs = tokenizer(texts, return_tensors="pt", padding=True, truncation=True)
+def get_text_embeddings(texts, tokenizer, text_encoder, device):
+    inputs = tokenizer(texts, return_tensors="pt", padding=True, truncation=True).to(device=device)
     with torch.no_grad():
         embeddings = text_encoder(**inputs).last_hidden_state  # [batch_size, seq_len, embed_dim]
     return embeddings
@@ -77,7 +77,7 @@ def main():
 
     # Load CLIP components
     tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-large-patch14")
-    text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-large-patch14")
+    text_encoder = CLIPTextModel.from_pretrained("openai/clip-vit-large-patch14").to(device)
 
     # Model , optimize , loss
     model = UNet(image_channels=4, norm_group=2).to(device)
@@ -112,7 +112,7 @@ def main():
             texts_list = texts.tolist()
             texts_list = [token_to_word[x] for x in texts_list]
 
-            text_emb = get_text_embeddings(texts_list, tokenizer, text_encoder).to(device)
+            text_emb = get_text_embeddings(texts_list, tokenizer, text_encoder, device).to(device)
 
             encoded_images = ae.encode(images)
             encoded_images = encoded_images["latent_dist"].mean
