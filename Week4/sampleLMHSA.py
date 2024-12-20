@@ -58,7 +58,7 @@ def denoise(model, noisy_images, timesteps, batch_size, device):
 
 
 batch_size = 1  # We want to generate one image
-img_channels = 4  # For RGB images
+img_channels = 4
 height, width = 4, 4  # Example dimensions
 timesteps = 1000
 # Example of running the denoising process

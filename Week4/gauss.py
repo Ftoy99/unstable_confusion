@@ -75,6 +75,27 @@ class Gauss:
         )
         return model_mean, posterior_variance
 
+    # def p_sample(self, x_t, t, noise_pred, clip_denoised=True):
+    #     # Predict x_0 (denoised image) from the noise
+    #     x_start = self.predict_start_from_noise(x_t, t, noise_pred)
+    #
+    #     if clip_denoised:
+    #         x_start = torch.clamp(x_start, -1.0, 1.0)
+    #
+    #     # Compute the posterior mean and variance
+    #
+    #     model_mean, posterior_variance = self.p_mean_variance(x_start, x_t, t)
+    #
+    #     # Sample noise
+    #     noise = torch.randn_like(x_t)
+    #
+    #     # Mask noise for t == 0 (no noise at the final step)
+    #     t_tensor = torch.tensor([t], device=self.sqrt_alpha_cumprod.device, dtype=torch.long)  # Convert t to a tensor
+    #     nonzero_mask = (t_tensor > 0).float().view(-1, 1, 1, 1)  # Apply mask based on t_tensor
+    #
+    #     # Compute x_t-1
+    #     return model_mean + nonzero_mask * torch.sqrt(posterior_variance) * noise
+
     def p_sample(self, x_t, t, noise_pred, clip_denoised=True):
         # Predict x_0 (denoised image) from the noise
         x_start = self.predict_start_from_noise(x_t, t, noise_pred)
@@ -83,15 +104,7 @@ class Gauss:
             x_start = torch.clamp(x_start, -1.0, 1.0)
 
         # Compute the posterior mean and variance
-
         model_mean, posterior_variance = self.p_mean_variance(x_start, x_t, t)
 
-        # Sample noise
-        noise = torch.randn_like(x_t)
-
-        # Mask noise for t == 0 (no noise at the final step)
-        t_tensor = torch.tensor([t], device=self.sqrt_alpha_cumprod.device, dtype=torch.long)  # Convert t to a tensor
-        nonzero_mask = (t_tensor > 0).float().view(-1, 1, 1, 1)  # Apply mask based on t_tensor
-
-        # Compute x_t-1
-        return model_mean + nonzero_mask * torch.sqrt(posterior_variance) * noise
+        # Compute x_{t-1} without noise
+        return model_mean
