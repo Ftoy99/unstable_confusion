@@ -59,7 +59,7 @@ def denoise(model, noisy_images, timesteps, batch_size, device):
 
 batch_size = 1  # We want to generate one image
 img_channels = 4
-height, width = 4, 4  # Example dimensions
+height, width = 4, 4  # AE Latent Dimension
 timesteps = 1000
 # Example of running the denoising process
 x = torch.randn(batch_size, img_channels, height, width)  # Noisy input image
